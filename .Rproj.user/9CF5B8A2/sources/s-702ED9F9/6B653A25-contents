@@ -99,14 +99,18 @@ heimat_per <- as.data.frame(prop.table(table(general$hf_tourist_einheimisch)))
 names(heimat_per) <- c(" Liegt Ihre Heimat in der Bodenseeregion? ", " Percentage ")
 
 einheit_per <- as.data.frame(prop.table(table(general$hf_einheit)))
+einheit_per <- einheit_per[1:2,]
 names(einheit_per) <- c(" Empfinden Sie die Bodenseeregion als eine Einheit? ", " Percentage ")
 
-einheit_per %>%
-  kbl() %>%
-  kable_paper("hover", full_width = F)
+# Einheit_tbl <- einheit_per %>%
+#   kbl() %>%
+#   kable_paper("hover", full_width = F)
+# 
+# Heimat_tbl <- heimat_per %>%
+#   kbl() %>%
+#   kable_paper("hover", full_width = F)
 
-heimat_per %>%
-  kbl() %>%
+knitr::kable(list(einheit_per, heimat_per)) %>%
   kable_paper("hover", full_width = F)
 
 
