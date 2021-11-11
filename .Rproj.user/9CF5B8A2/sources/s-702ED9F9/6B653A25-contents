@@ -101,8 +101,15 @@ names(heimat_per) <- c(" Liegt Ihre Heimat in der Bodenseeregion? ", " Percentag
 einheit_per <- as.data.frame(prop.table(table(general$hf_einheit)))
 names(einheit_per) <- c(" Empfinden Sie die Bodenseeregion als eine Einheit? ", " Percentage ")
 
-kbl(heimat_per)
-kbl(einheit_per)
+einheit_per %>%
+  kbl() %>%
+  kable_paper("hover", full_width = F)
+
+heimat_per %>%
+  kbl() %>%
+  kable_paper("hover", full_width = F)
+
+
 ```
 
 
