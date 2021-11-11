@@ -110,7 +110,7 @@ names(einheit_per) <- c(" Empfinden Sie die Bodenseeregion als eine Einheit? ", 
 #   kbl() %>%
 #   kable_paper("hover", full_width = F)
 
-knitr::kable(list(einheit_per, heimat_per)) %>%
+knitr::kable(list(heimat_per,einheit_per)) %>%
   kable_paper("hover", full_width = F)
 
 
