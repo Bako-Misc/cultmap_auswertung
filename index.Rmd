@@ -71,18 +71,29 @@ pie_geschlecht
 ```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Jahrgang
 general$sdf_jahrgang <- as.factor(general$sdf_jahrgang)
 general$sdf_jahrgang <- factor(general$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
 
 plot_jahrgang <- ggplot(data = general) + geom_bar(aes(sdf_jahrgang, fill = sdf_geschlecht)) + ggtitle("Wie alt sind Sie?") + scale_fill_brewer(palette="Set1") + theme(axis.title.x=element_blank(),panel.border = element_blank(),legend.title = element_blank(),plot.title = element_text(size = 11, hjust = 0.5, face = "bold"))
 
+# Grenzverkehr
+general$hf_grenzverkehr <- as.factor(general$hf_grenzverkehr)
+general$hf_grenzverkehr <- factor(general$hf_grenzverkehr, levels = c("weiss nicht","ungenügend","mangelhaft","ausreichend","befriedigend","gut","sehr gut"))
+
+plot_grenzverkehr <- ggplot(data = general) + geom_bar(aes(hf_grenzverkehr, fill = hf_tourist_einheimisch)) + ggtitle("Wie bewerten Sie den grenzüberschreitenden öffentlichen Verkehr?") + scale_fill_brewer(palette="Set1", name = "Einheimisch?") + 
+  theme(axis.title.x=element_blank(),panel.border = element_blank(),plot.title =  element_text(size = 11, hjust = 0.5, face = "bold"))
+
+
+
 plot_jahrgang
+plot_grenzverkehr
 ```
 
 ### Tables
 
 ```{r}
-head(cars)
+head(general)
 ```
 
 ```{r kable table, eval=FALSE, include=FALSE}
