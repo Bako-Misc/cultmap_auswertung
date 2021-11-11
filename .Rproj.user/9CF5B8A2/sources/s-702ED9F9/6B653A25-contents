@@ -1,0 +1,87 @@
+---
+title: ""
+# author: "Nikos Bakogiannis"
+# date: "11 11 2021"
+output: html_document
+---
+
+
+### Generelle Fragen
+
+```{r import data, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+
+
+data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
+
+general <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit","hf_einheit_ja",
+                                    "hf_einheit_nein","hf_grenzverkehr","sdf_geschlecht","sdf_jahrgang"))
+
+# general$hf_einheit[is.na(general$hf_einheit)] <- "Kein Wert"
+# # Create a factor with the wrong order of levels
+# general$hf_einheit <- factor(general$hf_einheit, levels = c("ja", "nein", "kein Wert"))
+
+```
+
+```{r basic plots, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+# create custom theme and apply it to every plot
+####################################################################################
+custom_theme <- theme(panel.border = element_blank(),legend.title = element_blank(),
+                      plot.title = element_text(size = 11, hjust = 0.5, face = "bold")) 
+####################################################################################
+
+# Heimat oder nicht
+pie_heimat <- ggplot(data=general, aes(x = "", fill = hf_tourist_einheimisch)) + 
+  geom_bar(position = "fill", width = 1) + 
+  coord_polar(theta = "y") + 
+  xlab("") + ylab("") + custom_theme + 
+  ggtitle("Liegt Ihre Heimat in der Bodenseeregion?") + scale_fill_brewer(palette="Set1")
+
+
+# Einheit oder nicht -- wenn der Heimat in der Bodenseeregion liegt
+pie_einheit <- ggplot(data=general, aes(x = "", fill = hf_einheit)) + 
+  geom_bar(position = "fill", width = 1) + 
+  coord_polar(theta = "y") + 
+  xlab("") + ylab("") + custom_theme + 
+  ggtitle("Empfinden Sie die Bodenseeregion als eine Einheit?") + scale_fill_brewer(palette="Set1")
+
+# Geschlecht Distribution
+general$sdf_geschlecht <- as.factor(general$sdf_geschlecht)
+levels(general$sdf_geschlecht) <- c("diverse", "männlich", "weiblich") # rename the levels
+general$sdf_geschlecht <- factor(general$sdf_geschlecht, levels = c("männlich", "weiblich","diverse")) # reorder the levels
+ 
+pie_geschlecht <- ggplot(data=general, aes(x = "", fill = sdf_geschlecht)) + 
+  geom_bar(position = "fill", width = 1) + 
+  coord_polar(theta = "y") + 
+  xlab("") + ylab("") + custom_theme + 
+  ggtitle("Was ist Ihr Geschlecht?") + scale_fill_brewer(palette="Set1")
+
+pie_heimat
+pie_einheit
+pie_geschlecht
+```
+
+```{r kable table, eval=FALSE, include=FALSE}
+library(kableExtra)
+heimat_per <- prop.table(table(general$hf_tourist_einheimisch))
+einheit_per <- prop.table(table(general$hf_einheit))
+general_perc <- as.data.frame(cbind(heimat_per, einheit_per))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+general$sdf_jahrgang <- as.factor(general$sdf_jahrgang)
+general$sdf_jahrgang <- factor(general$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+
+plot_jahrgang <- ggplot(data = general) + geom_bar(aes(sdf_jahrgang, fill = sdf_geschlecht)) + ggtitle("Wie alt sind Sie?") + scale_fill_brewer(palette="Set1") + custom_theme
+
+plot_jahrgang
+```
+
+
+
+

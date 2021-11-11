@@ -1,0 +1,8 @@
+"0","data_rephrase <- data_all %>% select(.,c(""hf_tourist_einheimisch"",""sdf_wohnort"",""te_dialekte"","
+"0","                                         ""te_kultur_orte"",""te_gruende_tourist"",""te_erlebnisse"", ""te_anrainer"","
+"0","                                         ""te_anrainer_orte"", ""te_jahreszeit"",""sdf_geschlecht"",""sdf_wohnzeit"","
+"0","                                         ""sdf_beschaeftigungsverhaeltnis""))"
+"2","Fehler: Can't subset columns that don't exist.
+[31mx[39m Column `te_dialekte` doesn't exist.
+[90mRun `rlang::last_error()` to see where the error occurred.[39m
+"
