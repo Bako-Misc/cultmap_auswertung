@@ -52,7 +52,7 @@ pie_einheit <- ggplot(data=general, aes(x = "", fill = hf_einheit)) +
   geom_bar(position = "fill", width = 1) + 
   coord_polar(theta = "y") + 
   xlab("") + ylab("") + custom_theme + 
-  ggtitle("Empfinden Sie die Bodenseeregion als eine Einheit?") + scale_fill_brewer(palette="Set1")
+  ggtitle("Empfinden Sie die Bodenseeregion – trotz der Zugehörigkeit zu vier Staaten – als eine Einheit?") + scale_fill_brewer(palette="Set1")
 
 # Geschlecht Distribution
 general$sdf_geschlecht <- as.factor(general$sdf_geschlecht)
@@ -92,16 +92,19 @@ plot_grenzverkehr
 
 ### Tables
 
-```{r}
-head(general)
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(kableExtra)
+library(dplyr)
+heimat_per <- as.data.frame(prop.table(table(general$hf_tourist_einheimisch)))
+names(heimat_per) <- c(" Liegt Ihre Heimat in der Bodenseeregion? ", " Percentage ")
+
+einheit_per <- as.data.frame(prop.table(table(general$hf_einheit)))
+names(einheit_per) <- c(" Empfinden Sie die Bodenseeregion als eine Einheit? ", " Percentage ")
+
+kbl(heimat_per)
+kbl(einheit_per)
 ```
 
-```{r kable table, eval=FALSE, include=FALSE}
-library(kableExtra)
-heimat_per <- prop.table(table(general$hf_tourist_einheimisch))
-einheit_per <- prop.table(table(general$hf_einheit))
-general_perc <- as.data.frame(cbind(heimat_per, einheit_per))
-```
 
 
 
