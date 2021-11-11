@@ -1,4 +1,0 @@
-"0","general$sdf_jahrgang <- as.factor(general$sdf_jahrgang)"
-"0","general$sdf_jahrgang <- factor(general$sdf_jahrgang, levels = c(""<18"",""18_29"",""30_60"","">60"",""NA""))"
-"0",""
-"0","plot_jahrgang <- ggplot(data = general) + geom_bar(aes(sdf_jahrgang, fill = sdf_geschlecht)) + ggtitle(""Wie alt sind Sie?"") + scale_fill_brewer(palette=""Set1"") + custom_theme"

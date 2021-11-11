@@ -5,8 +5,11 @@ title: ""
 output: html_document
 ---
 
+## Generelle Fragen {.tabset}
 
-### Generelle Fragen
+### Plots
+
+Wir zeigen hier einige grundlegende Diagramme zu einigen der allgemeinen Fragen
 
 ```{r import data, message=FALSE, warning=FALSE, include=FALSE}
 library(readr)
@@ -25,6 +28,7 @@ general <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit","hf_ei
 # general$hf_einheit <- factor(general$hf_einheit, levels = c("ja", "nein", "kein Wert"))
 
 ```
+
 
 ```{r basic plots, echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -66,20 +70,26 @@ pie_einheit
 pie_geschlecht
 ```
 
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+general$sdf_jahrgang <- as.factor(general$sdf_jahrgang)
+general$sdf_jahrgang <- factor(general$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+
+plot_jahrgang <- ggplot(data = general) + geom_bar(aes(sdf_jahrgang, fill = sdf_geschlecht)) + ggtitle("Wie alt sind Sie?") + scale_fill_brewer(palette="Set1") + theme(axis.title.x=element_blank(),panel.border = element_blank(),legend.title = element_blank(),plot.title = element_text(size = 11, hjust = 0.5, face = "bold"))
+
+plot_jahrgang
+```
+
+### Tables
+
+```{r}
+head(cars)
+```
+
 ```{r kable table, eval=FALSE, include=FALSE}
 library(kableExtra)
 heimat_per <- prop.table(table(general$hf_tourist_einheimisch))
 einheit_per <- prop.table(table(general$hf_einheit))
 general_perc <- as.data.frame(cbind(heimat_per, einheit_per))
-```
-
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-general$sdf_jahrgang <- as.factor(general$sdf_jahrgang)
-general$sdf_jahrgang <- factor(general$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
-
-plot_jahrgang <- ggplot(data = general) + geom_bar(aes(sdf_jahrgang, fill = sdf_geschlecht)) + ggtitle("Wie alt sind Sie?") + scale_fill_brewer(palette="Set1") + custom_theme
-
-plot_jahrgang
 ```
 
 
