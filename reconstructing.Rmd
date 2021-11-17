@@ -1,0 +1,41 @@
+---
+title: "Reconstructing"
+author: "Nikos Bakogiannis"
+date: "17 11 2021"
+output: html_document
+---
+
+
+```{r import data, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+
+
+data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
+
+general <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit","hf_einheit_ja",
+                                    "hf_einheit_nein","hf_grenzverkehr","sdf_geschlecht","sdf_jahrgang"))
+
+# general$hf_einheit[is.na(general$hf_einheit)] <- "Kein Wert"
+# # Create a factor with the wrong order of levels
+# general$hf_einheit <- factor(general$hf_einheit, levels = c("ja", "nein", "kein Wert"))
+
+```
+
+```{r}
+library(reshape2)
+
+
+df1 <- general %>% select(c("hf_einheit","sdf_jahrgang"))
+
+df1 <- df1 %>% group_by(sdf_jahrgang,hf_einheit) %>% summarise(occurences = n()) %>%
+  mutate(percent = (occurences / 543)*100)
+
+df1_ja <- dplyr::filter(df1, hf_einheit == "ja")
+df1_nein <- dplyr::filter(df1, hf_einheit == "nein")
+
+
+```
+
