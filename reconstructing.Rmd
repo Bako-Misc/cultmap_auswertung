@@ -32,10 +32,30 @@ df1 <- general %>% select(c("hf_einheit","sdf_jahrgang"))
 
 df1 <- df1 %>% group_by(sdf_jahrgang,hf_einheit) %>% summarise(occurences = n()) %>%
   mutate(percent = (occurences / 543)*100)
+df1$percent <- round(df1$percent,2)
 
+df1_clean <- na.omit(df1)
+
+p_together <- ggplot(df1_clean, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) + geom_col() + 
+  geom_text(aes(label = percent),vjust = -0.2)
+
+```
+
+
+```{r}
+library(gridExtra)
 df1_ja <- dplyr::filter(df1, hf_einheit == "ja")
 df1_nein <- dplyr::filter(df1, hf_einheit == "nein")
 
 
+
+test <- na.omit(df1_ja)
+
+p1 <- ggplot(test, aes(x = sdf_jahrgang, y = percent, fill = sdf_jahrgang)) + geom_col() + 
+  geom_text(aes(label = percent),vjust = -0.2)
+p2 <- ggplot(test, aes(x = sdf_jahrgang, y = percent, fill = sdf_jahrgang)) + geom_col() + 
+  geom_text(aes(label = percent),vjust = -0.2)
 ```
+
+
 
