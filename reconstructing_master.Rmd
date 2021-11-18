@@ -6,6 +6,7 @@ output: html_document
 ---
 
 
+
 ```{r import data, message=FALSE, warning=FALSE, include=FALSE}
 library(readr)
 library(ggplot2)
@@ -13,10 +14,7 @@ library(dplyr)
 library(readxl)
 library(reshape)
 library(tidyr)
-
-
 data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
-
 data_01 <- data_all %>% select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang","hf_tourist_einheimisch",
                                     "sdf_wohnort", "te_wegzug"))
 ```
@@ -25,13 +23,10 @@ data_01 <- data_all %>% select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang"
 ```{r first plot from Damaris}
 ## Einheit _ Keine Einheit für Tourists und Einheimisch
 dp1 <- data_01 %>% select(c("hf_einheit","sdf_jahrgang"))
-
 dp1 <- dp1 %>% group_by(sdf_jahrgang,hf_einheit) %>% summarise(occurences = n())
-
 # calculating percentages
 dp1 <- dp1 %>% mutate(
   percent = round((occurences / 543)*100,2))
-
 # 
 # # Einheit
 # dp1_eiheit <- dp1 %>% filter(.,hf_einheit == "ja")
@@ -49,25 +44,19 @@ dp1 <- dp1 %>% mutate(
 
 ```{r Einheit_Keine in dodge mode}
 dp1$sdf_jahrgang <- factor(dp1$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
-
 ### custom color scale and text configuration
 css <- scale_fill_manual(values = c("steelblue2", "firebrick2","red"),
                     labels = c("Einheit", "Keine Einheit", "Kein Wert"))
-
 css2 <- scale_fill_manual(values = c("steelblue2", "firebrick2"),
                     labels = c("Einheit", "Keine Einheit"))
 ###
-
 p1 <- ggplot(data = dp1, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
   geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
   ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimische und Touristen)") + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css 
-
 ggsave("einheit_all.pdf")
-
-
 ## Ohne NA Werte -- the NA values are considered within the precentage calculation though
 dp1_ohne <- na.omit(dp1)
 p1_ohne <- ggplot(data = dp1_ohne, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
@@ -78,9 +67,9 @@ p1_ohne <- ggplot(data = dp1_ohne, aes(x = sdf_jahrgang, y = percent, fill = hf_
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2 
-
 ggsave("einheit_all_ohneNA.pdf")
 ```
+
 
 ### Wahrnehmung der Bodenseeregion als Einheit (Einheimische)
 
@@ -140,6 +129,42 @@ p2_ohne <- ggplot(data = dp2_ohne, aes(x = hf_einheit, y = percent, fill = sdf_w
 ggsave("einheit_wohnort_ohne.pdf")
 
 ```
+
+### Einheit nach Länder
+```{r}
+dp2_fokus <- filter(data_02, hf_tourist_einheimisch == "ja")
+
+# grouping the data
+dp2_fokus <- dp2_fokus %>% group_by(sdf_wohnort,hf_einheit) %>% summarise(occurences = n()) 
+
+dp2_ch <- dp2_fokus %>% filter(., sdf_wohnort == "ch") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
+
+dp2_au <- dp2_fokus %>% filter(., sdf_wohnort == "au") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
+
+dp2_de <- dp2_fokus %>% filter(., sdf_wohnort == "de") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
+
+dp2_fokus <- rbind(dp2_au,dp2_ch,dp2_de)
+
+# making it clearer
+dp2_fokus$hf_einheit[dp2_fokus$hf_einheit == "ja"] <- "Einheit"
+dp2_fokus$hf_einheit[dp2_fokus$hf_einheit == "nein"] <- "Keine Einheit"
+
+
+p2_fokus <- ggplot(data = dp2_fokus, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (**Fokus auf die Länder**)") + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+ggsave("einheitwohnort_Fokus_Laender.pdf")
+```
+
 
 
 ### Bereitschaft aus der Bodenseeregion wegzuziehen
@@ -238,6 +263,43 @@ p_verein <- ggplot(te_verein, aes(percent, te_verein,fill=te_verein,alpha = 0.85
 ggsave("aktivit_vereine.pdf")
 
 ```
+
+### Dialektsprechen
+
+```{r}
+dp5 <- data_all %>% select(.,c("sdf_wohnort","te_dialekte_1"))
+
+#remove na values
+dp5 <- na.omit(dp5)
+dp5 <- dp5 %>%
+  group_by(sdf_wohnort,te_dialekte_1) %>% summarise(occurences = n()) %>% 
+  filter(.,sdf_wohnort != "sonstiges")
+
+
+dp5 <- dp5 %>% mutate(
+  percent = round((occurences/sum(occurences))*100,2)
+)
+
+# reordering the levels
+dp5$te_dialekte_1 <- factor(dp5$te_dialekte_1, levels = c("bodensee_alemannisch","schwaebisch",
+                                                          "liechtensteiner",
+                                                          "hochalemannisch", "vorarlberg","keinen"))
+
+
+p5 <- ggplot(data = dp5, aes(x = te_dialekte_1, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Dialekte") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Welche Dialekte sprechen Sie?") + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+ggsave("dialektesprechen.pdf")
+```
+
+
+
 
 
 
