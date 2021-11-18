@@ -1,0 +1,87 @@
+---
+title: "Damaris_redo"
+author: "Nikos Bakogiannis"
+date: "18 11 2021"
+output: html_document
+---
+
+
+```{r import data, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(reshape)
+library(tidyr)
+
+
+data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
+
+data_01 <- data_all %>% select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang","hf_tourist_einheimisch",
+                                    "sdf_wohnort"))
+```
+
+### First plot from Damaris
+```{r first plot from Damaris}
+## Einheit _ Keine Einheit für Tourists und Einheimisch
+dp1 <- data_01 %>% select(c("hf_einheit","sdf_jahrgang"))
+
+dp1 <- dp1 %>% group_by(sdf_jahrgang,hf_einheit) %>% summarise(occurences = n())
+
+# calculating percentages
+dp1 <- dp1 %>% mutate(
+  percent = round((occurences / sum(occurences))*100,2))
+
+
+#Create a custom color scale
+library(RColorBrewer)
+myColors <- brewer.pal(5,"Set1")
+names(myColors) <- levels(dp1_eiheit$sdf_jahrgang)
+colScale <- scale_colour_manual(name = "grp",values = myColors)
+
+
+# Einheit
+dp1_eiheit <- dp1 %>% filter(.,hf_einheit == "ja")
+dp1_eiheit$sdf_jahrgang <- factor(dp1_eiheit$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+p_einheit <- ggplot(dp1_eiheit, aes(sdf_jahrgang,percent)) + geom_col()
+p_einheit + colScale
+
+
+# Keine Einheit
+dp1_keine <- dp1 %>% filter(.,hf_einheit == "nein")
+dp1_keine$sdf_jahrgang <- factor(dp1_keine$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+p_keine <- ggplot(dp1_keine, aes(sdf_jahrgang,percent)) + geom_col() + theme_minimal() 
+```
+
+
+```{r Einheit_Keine in dodge mode}
+dp1$sdf_jahrgang <- factor(dp1$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+
+### custom color scale and text configuration
+css <- scale_fill_manual(values = c("steelblue2", "firebrick2","red"),
+                    labels = c("Einheit", "Keine Einheit", "Kein Wert"))
+
+css2 <- scale_fill_manual(values = c("steelblue2", "firebrick2"),
+                    labels = c("Einheit", "Keine Einheit"))
+###
+
+p1 <- ggplot(data = dp1, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("") + ylab("Prozent %") + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimisch und Touristen)") + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.y = element_text(size = 10), axis.title.y = element_text(size = 10)) + css 
+
+ggsave("einheit_all.pdf")
+
+
+## Ohne NA Werte -- the NA values are considered within the precentage calculation though
+dp1_ohne <- na.omit(dp1)
+p1_ohne <- ggplot(data = dp1_ohne, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("") + ylab("Prozent %") + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimisch und Touristen)") + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.y = element_text(size = 10), axis.title.y = element_text(size = 10)) + css2 
+
+ggsave("einheit_all_ohneNA.pdf")
+```
+

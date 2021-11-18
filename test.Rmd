@@ -1,7 +1,0 @@
-df1= data.frame(Name=c('James','Paul','Richards','Marico','Samantha','Ravi','Raghu','Richards','George','Ema','Samantha','Catherine'),
-                2
-                State=c('Alaska','California','Texas','North Carolina','California','Texas','Alaska','Texas','North Carolina','Alaska','California','Texas'),
-                3
-                Sales=c(14,24,31,12,13,7,9,31,18,16,18,14))
-4
-df1
