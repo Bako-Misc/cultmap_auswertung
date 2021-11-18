@@ -30,27 +30,20 @@ dp1 <- dp1 %>% group_by(sdf_jahrgang,hf_einheit) %>% summarise(occurences = n())
 
 # calculating percentages
 dp1 <- dp1 %>% mutate(
-  percent = round((occurences / sum(occurences))*100,2))
+  percent = round((occurences / 543)*100,2))
 
-
-#Create a custom color scale
-library(RColorBrewer)
-myColors <- brewer.pal(5,"Set1")
-names(myColors) <- levels(dp1_eiheit$sdf_jahrgang)
-colScale <- scale_colour_manual(name = "grp",values = myColors)
-
-
-# Einheit
-dp1_eiheit <- dp1 %>% filter(.,hf_einheit == "ja")
-dp1_eiheit$sdf_jahrgang <- factor(dp1_eiheit$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
-p_einheit <- ggplot(dp1_eiheit, aes(sdf_jahrgang,percent)) + geom_col()
-p_einheit + colScale
-
-
-# Keine Einheit
-dp1_keine <- dp1 %>% filter(.,hf_einheit == "nein")
-dp1_keine$sdf_jahrgang <- factor(dp1_keine$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
-p_keine <- ggplot(dp1_keine, aes(sdf_jahrgang,percent)) + geom_col() + theme_minimal() 
+# 
+# # Einheit
+# dp1_eiheit <- dp1 %>% filter(.,hf_einheit == "ja")
+# dp1_eiheit$sdf_jahrgang <- factor(dp1_eiheit$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+# p_einheit <- ggplot(dp1_eiheit, aes(sdf_jahrgang,percent)) + geom_col()
+# p_einheit + colScale
+# 
+# 
+# # Keine Einheit
+# dp1_keine <- dp1 %>% filter(.,hf_einheit == "nein")
+# dp1_keine$sdf_jahrgang <- factor(dp1_keine$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+# p_keine <- ggplot(dp1_keine, aes(sdf_jahrgang,percent)) + geom_col() + theme_minimal() 
 ```
 
 
@@ -66,10 +59,11 @@ css2 <- scale_fill_manual(values = c("steelblue2", "firebrick2"),
 ###
 
 p1 <- ggplot(data = dp1, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
-  geom_col(position = "dodge", alpha = 0.8) + xlab("") + ylab("Prozent %") + 
-  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimisch und Touristen)") + 
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimische und Touristen)") + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
-        axis.text.y = element_text(size = 10), axis.title.y = element_text(size = 10)) + css 
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css 
 
 ggsave("einheit_all.pdf")
 
@@ -77,11 +71,73 @@ ggsave("einheit_all.pdf")
 ## Ohne NA Werte -- the NA values are considered within the precentage calculation though
 dp1_ohne <- na.omit(dp1)
 p1_ohne <- ggplot(data = dp1_ohne, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
-  geom_col(position = "dodge", alpha = 0.8) + xlab("") + ylab("Prozent %") + 
-  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimisch und Touristen)") + 
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
+   geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimische und Touristen)") + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
-        axis.text.y = element_text(size = 10), axis.title.y = element_text(size = 10)) + css2 
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2 
 
 ggsave("einheit_all_ohneNA.pdf")
+```
+
+### Wahrnehmung der Bodenseeregion als Einheit (Einheimische)
+
+```{r}
+data_02 <- data_all %>% select(., c("hf_einheit","hf_tourist_einheimisch","sdf_wohnort"))
+
+# selecting only the Einheimisch
+dp2 <- filter(data_02, hf_tourist_einheimisch == "ja")
+
+# grouping the data
+dp2 <- dp2 %>% group_by(sdf_wohnort,hf_einheit) %>% summarise(occurences = n())
+dp2 <- dp2 %>% mutate(
+  percent = round((occurences/232)*100,2)
+)
+
+# Plot ohne NAs -- only for the visualisation
+dp2_ohne <- na.omit(dp2) %>%
+  filter(.,sdf_wohnort != "sonstiges")
+
+#restructuring a little bit
+dp2$hf_einheit[dp2$hf_einheit == "ja"] <- "Einheit"
+dp2$hf_einheit[dp2$hf_einheit == "nein"] <- "Keine Einheit"
+dp2$hf_einheit[is.na(dp2$hf_einheit)] <- "NA"
+
+##
+# for the one w/o NAs
+dp2_ohne$hf_einheit[dp2_ohne$hf_einheit == "ja"] <- "Einheit"
+dp2_ohne$hf_einheit[dp2_ohne$hf_einheit == "nein"] <- "Keine Einheit"
+
+
+## STYLING
+css3 <- scale_fill_manual(values = c("gray61", "firebrick4","gray15","gray92","snow2"),
+                   labels = c("Österreich", "Schweiz", "Deutschland", "sonstiges", "na"))
+
+css4 <- scale_fill_manual(values = c("gray61", "firebrick4","gray15"),
+                   labels = c("Österreich", "Schweiz", "Deutschland"))
+
+# Plot with NAs
+p2 <- ggplot(data = dp2, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort ") + ylab("Prozent %") + 
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (Einheimische)") +
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css3
+
+ggsave("einheit_wohnort.pdf")
+
+p2_ohne <- ggplot(data = dp2_ohne, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort ") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (Einheimische)") + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+ggsave("einheit_wohnort_ohne.pdf")
+
 ```
 
