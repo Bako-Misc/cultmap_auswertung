@@ -27,18 +27,6 @@ dp1 <- dp1 %>% group_by(sdf_jahrgang,hf_einheit) %>% summarise(occurences = n())
 # calculating percentages
 dp1 <- dp1 %>% mutate(
   percent = round((occurences / 543)*100,2))
-# 
-# # Einheit
-# dp1_eiheit <- dp1 %>% filter(.,hf_einheit == "ja")
-# dp1_eiheit$sdf_jahrgang <- factor(dp1_eiheit$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
-# p_einheit <- ggplot(dp1_eiheit, aes(sdf_jahrgang,percent)) + geom_col()
-# p_einheit + colScale
-# 
-# 
-# # Keine Einheit
-# dp1_keine <- dp1 %>% filter(.,hf_einheit == "nein")
-# dp1_keine$sdf_jahrgang <- factor(dp1_keine$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
-# p_keine <- ggplot(dp1_keine, aes(sdf_jahrgang,percent)) + geom_col() + theme_minimal() 
 ```
 
 
@@ -67,7 +55,57 @@ p1_ohne <- ggplot(data = dp1_ohne, aes(x = sdf_jahrgang, y = percent, fill = hf_
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2 
-ggsave("einheit_all_ohneNA.pdf")
+ggsave("einheit_jahrgang_gesamt.pdf")
+```
+
+
+```{r Einheit_Wohnort fokus Jahrgang}
+dp1_fokus <- data_01 %>% select(c("hf_einheit","sdf_jahrgang"))
+
+# age group <18
+dp1_18 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == "<18") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+# age group 18_29
+dp1_18_29 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == "18_29") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+# age group 30_60
+dp1_30_60 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == "30_60") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+# age group >60
+dp1_60 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == ">60") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+dp1_fokus_all <- rbind(dp1_18,dp1_18_29,dp1_30_60,dp1_60)
+
+# reordering levels
+dp1_fokus_all$sdf_jahrgang <- factor(dp1_fokus_all$sdf_jahrgang, levels = c("<18","18_29","30_60",">60"))
+
+
+p1_fokus <- ggplot(data = dp1_fokus_all, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
+   geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (**Fokus auf die Altersgruppe**)") +
+  ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2
+ggsave("einheit_jahrgang_focus.pdf")
+
+
+
+
 ```
 
 
