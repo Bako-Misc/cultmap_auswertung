@@ -1,120 +1,480 @@
 ---
-title: ""
-# author: "Nikos Bakogiannis"
-# date: "11 11 2021"
-output: html_document
+title: "plots with R"
+author: "Nikos Bakogiannis"
+date: "18 11 2021"
+output:
+  html_document: default
+  word_document: default
 ---
 
-## Generelle Fragen {.tabset}
 
-### Plots
-
-Wir zeigen hier einige grundlegende Diagramme zu einigen der allgemeinen Fragen
 
 ```{r import data, message=FALSE, warning=FALSE, include=FALSE}
 library(readr)
 library(ggplot2)
 library(dplyr)
 library(readxl)
-
+library(reshape)
+library(tidyr)
 
 data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
 
 general <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit","hf_einheit_ja",
                                     "hf_einheit_nein","hf_grenzverkehr","sdf_geschlecht","sdf_jahrgang"))
 
-# general$hf_einheit[is.na(general$hf_einheit)] <- "Kein Wert"
-# # Create a factor with the wrong order of levels
-# general$hf_einheit <- factor(general$hf_einheit, levels = c("ja", "nein", "kein Wert"))
+data_01 <- data_all %>% select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang","hf_tourist_einheimisch",
+                                    "sdf_wohnort", "te_wegzug"))
+```
 
+**Wahrnehmung der Bodenseeregion als eine Einheit nach Altersgruppe**
+
+```{r first plot from Damaris, message=FALSE, warning=FALSE, include=FALSE}
+## Einheit _ Keine Einheit für Tourists und Einheimisch
+dp1 <- data_01 %>% select(c("hf_einheit","sdf_jahrgang"))
+dp1 <- dp1 %>% group_by(sdf_jahrgang,hf_einheit) %>% summarise(occurences = n())
+# calculating percentages
+dp1 <- dp1 %>% mutate(
+  percent = round((occurences / 543)*100,2))
+```
+```{r Einheit_Keine in dodge mode, echo=FALSE, message=FALSE, warning=FALSE}
+dp1$sdf_jahrgang <- factor(dp1$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
+### custom color scale and text configuration
+css <- scale_fill_manual(values = c("steelblue2", "firebrick2","red"),
+                    labels = c("Einheit", "Keine Einheit", "Kein Wert"))
+css2 <- scale_fill_manual(values = c("steelblue2", "firebrick2"),
+                    labels = c("Einheit", "Keine Einheit"))
+###
+p1 <- ggplot(data = dp1, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimische und Touristen)") + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css 
+ggsave("einheit_all.pdf")
+## Ohne NA Werte -- the NA values are considered within the precentage calculation though
+dp1_ohne <- na.omit(dp1)
+p1_ohne <- ggplot(data = dp1_ohne, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
+   geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + ylim(0,100) + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimische und Touristen)") + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2
+p1_ohne
+#ggsave("to_deliver/einheit_jahrgang_gesamt.pdf")
+```
+
+```{r Einheit_Wohnort fokus Jahrgang, echo=FALSE, message=FALSE, warning=FALSE}
+dp1_fokus <- data_01 %>% select(c("hf_einheit","sdf_jahrgang"))
+
+# age group <18
+dp1_18 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == "<18") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+# age group 18_29
+dp1_18_29 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == "18_29") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+# age group 30_60
+dp1_30_60 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == "30_60") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+# age group >60
+dp1_60 <- dp1_fokus %>% group_by(sdf_jahrgang,hf_einheit) %>%
+  filter(.,sdf_jahrgang == ">60") %>%
+  summarise(occurences = n()) %>% na.omit(.) %>% mutate(
+  percent = round((occurences/sum(occurences)*100),2))
+
+dp1_fokus_all <- rbind(dp1_18,dp1_18_29,dp1_30_60,dp1_60)
+
+# reordering levels
+dp1_fokus_all$sdf_jahrgang <- factor(dp1_fokus_all$sdf_jahrgang, levels = c("<18","18_29","30_60",">60"))
+
+
+p1_fokus <- ggplot(data = dp1_fokus_all, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
+   geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + ylim(0,100) + 
+  ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (**Fokus auf die Altersgruppe**)") +
+  ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2
+
+p1_fokus
+
+#ggsave("to_deliver/einheit_jahrgang_fokus.pdf")
 ```
 
 
-```{r basic plots, echo=FALSE, message=FALSE, warning=FALSE}
-library(ggplot2)
+**Wahrnehmung der Bodenseeregion als Einheit (Einheimische) nach Wohnort**
 
-# create custom theme and apply it to every plot
-####################################################################################
-custom_theme <- theme(panel.border = element_blank(),legend.title = element_blank(),
-                      plot.title = element_text(size = 11, hjust = 0.5, face = "bold")) 
-####################################################################################
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+data_02 <- data_all %>% select(., c("hf_einheit","hf_tourist_einheimisch","sdf_wohnort"))
 
-# Heimat oder nicht
-pie_heimat <- ggplot(data=general, aes(x = "", fill = hf_tourist_einheimisch)) + 
-  geom_bar(position = "fill", width = 1) + 
-  coord_polar(theta = "y") + 
-  xlab("") + ylab("") + custom_theme + 
-  ggtitle("Liegt Ihre Heimat in der Bodenseeregion?") + scale_fill_brewer(palette="Set1")
+# selecting only the Einheimisch
+dp2 <- filter(data_02, hf_tourist_einheimisch == "ja")
+
+# grouping the data
+dp2 <- dp2 %>% group_by(sdf_wohnort,hf_einheit) %>% summarise(occurences = n())
+dp2 <- dp2 %>% mutate(
+  percent = round((occurences/232)*100,2)
+)
+
+# Plot ohne NAs -- only for the visualisation
+dp2_ohne <- na.omit(dp2) %>%
+  filter(.,sdf_wohnort != "sonstiges")
+
+#restructuring a little bit
+dp2$hf_einheit[dp2$hf_einheit == "ja"] <- "Einheit"
+dp2$hf_einheit[dp2$hf_einheit == "nein"] <- "Keine Einheit"
+dp2$hf_einheit[is.na(dp2$hf_einheit)] <- "NA"
+
+##
+# for the one w/o NAs
+dp2_ohne$hf_einheit[dp2_ohne$hf_einheit == "ja"] <- "Einheit"
+dp2_ohne$hf_einheit[dp2_ohne$hf_einheit == "nein"] <- "Keine Einheit"
 
 
-# Einheit oder nicht -- wenn der Heimat in der Bodenseeregion liegt
-pie_einheit <- ggplot(data=general, aes(x = "", fill = hf_einheit)) + 
-  geom_bar(position = "fill", width = 1) + 
-  coord_polar(theta = "y") + 
-  xlab("") + ylab("") + custom_theme + 
-  ggtitle("Empfinden Sie die Bodenseeregion – trotz der Zugehörigkeit zu vier Staaten – als eine Einheit?") + scale_fill_brewer(palette="Set1")
+## STYLING
+css3 <- scale_fill_manual(values = c("gray61", "firebrick4","gray15","gray92","snow2"),
+                   labels = c("Österreich", "Schweiz", "Deutschland", "sonstiges", "na"))
 
-# Geschlecht Distribution
-general$sdf_geschlecht <- as.factor(general$sdf_geschlecht)
-levels(general$sdf_geschlecht) <- c("diverse", "männlich", "weiblich") # rename the levels
-general$sdf_geschlecht <- factor(general$sdf_geschlecht, levels = c("männlich", "weiblich","diverse")) # reorder the levels
- 
-pie_geschlecht <- ggplot(data=general, aes(x = "", fill = sdf_geschlecht)) + 
-  geom_bar(position = "fill", width = 1) + 
-  coord_polar(theta = "y") + 
-  xlab("") + ylab("") + custom_theme + 
-  ggtitle("Was ist Ihr Geschlecht?") + scale_fill_brewer(palette="Set1")
+css4 <- scale_fill_manual(values = c("gray61", "firebrick4","gray15"),
+                   labels = c("Österreich", "Schweiz", "Deutschland"))
 
-pie_heimat
-pie_einheit
-pie_geschlecht
+# Plot with NAs
+p2 <- ggplot(data = dp2, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort ") + ylab("Prozent %") + 
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (Einheimische)") +
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css3
+
+#ggsave("einheit_wohnort.pdf")
+
+p2_ohne <- ggplot(data = dp2_ohne, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort ") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (Einheimische)") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+p2_ohne
+#ggsave("to_deliver/einheit_wohnort_gesamt.pdf")
+
 ```
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-# Jahrgang
-general$sdf_jahrgang <- as.factor(general$sdf_jahrgang)
-general$sdf_jahrgang <- factor(general$sdf_jahrgang, levels = c("<18","18_29","30_60",">60","NA"))
-
-plot_jahrgang <- ggplot(data = general) + geom_bar(aes(sdf_jahrgang, fill = sdf_geschlecht)) + ggtitle("Wie alt sind Sie?") + scale_fill_brewer(palette="Set1") + theme(axis.title.x=element_blank(),panel.border = element_blank(),legend.title = element_blank(),plot.title = element_text(size = 11, hjust = 0.5, face = "bold"))
-
-# Grenzverkehr
-general$hf_grenzverkehr <- as.factor(general$hf_grenzverkehr)
-general$hf_grenzverkehr <- factor(general$hf_grenzverkehr, levels = c("weiss nicht","ungenügend","mangelhaft","ausreichend","befriedigend","gut","sehr gut"))
-
-plot_grenzverkehr <- ggplot(data = general) + geom_bar(aes(hf_grenzverkehr, fill = hf_tourist_einheimisch)) + ggtitle("Wie bewerten Sie den grenzüberschreitenden öffentlichen Verkehr?") + scale_fill_brewer(palette="Set1", name = "Einheimisch?") + 
-  theme(axis.title.x=element_blank(),panel.border = element_blank(),plot.title =  element_text(size = 11, hjust = 0.5, face = "bold"))
-
-
-
-plot_jahrgang
-plot_grenzverkehr
-```
-
-### Tables
+**Fokus auf die Länder**
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-library(kableExtra)
-library(dplyr)
-heimat_per <- as.data.frame(prop.table(table(general$hf_tourist_einheimisch)))
-names(heimat_per) <- c(" Liegt Ihre Heimat in der Bodenseeregion? ", " Percentage ")
+dp2_fokus <- filter(data_02, hf_tourist_einheimisch == "ja")
 
-einheit_per <- as.data.frame(prop.table(table(general$hf_einheit)))
-einheit_per <- einheit_per[1:2,]
-names(einheit_per) <- c(" Empfinden Sie die Bodenseeregion als eine Einheit? ", " Percentage ")
+# grouping the data
+dp2_fokus <- dp2_fokus %>% group_by(sdf_wohnort,hf_einheit) %>% summarise(occurences = n()) 
 
-# Einheit_tbl <- einheit_per %>%
-#   kbl() %>%
-#   kable_paper("hover", full_width = F)
-# 
-# Heimat_tbl <- heimat_per %>%
-#   kbl() %>%
-#   kable_paper("hover", full_width = F)
+dp2_ch <- dp2_fokus %>% filter(., sdf_wohnort == "ch") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
 
-knitr::kable(list(heimat_per,einheit_per)) %>%
-  kable_paper("hover", full_width = F)
+dp2_au <- dp2_fokus %>% filter(., sdf_wohnort == "au") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
 
+dp2_de <- dp2_fokus %>% filter(., sdf_wohnort == "de") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
+
+dp2_fokus <- rbind(dp2_au,dp2_ch,dp2_de)
+
+# making it clearer
+dp2_fokus$hf_einheit[dp2_fokus$hf_einheit == "ja"] <- "Einheit"
+dp2_fokus$hf_einheit[dp2_fokus$hf_einheit == "nein"] <- "Keine Einheit"
+
+
+p2_fokus <- ggplot(data = dp2_fokus, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (**Fokus auf die Länder**)") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+p2_fokus
+
+#ggsave("to_deliver/einheitwohnort_Fokus_Laender.pdf")
+```
+
+
+
+**Bereitschaft aus der Bodenseeregion wegzuziehen**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data_03 <- data_all %>% select(., c("sdf_wohnort", "te_wegzug"))
+
+# cleaning
+dp3 <- data_03 %>% filter(., sdf_wohnort != "NA") %>% 
+  group_by(sdf_wohnort,te_wegzug) %>% summarise(occurences = n())
+
+dp3 <- dp3 %>% mutate(
+  percent = round((occurences/295)*100,2)
+) %>% filter(.,sdf_wohnort !="sonstiges")
+
+# removing NA values
+dp3_ohne <- na.omit(dp3)
+
+p3_ohne <- ggplot(data = dp3_ohne, aes(x = te_wegzug, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Bereitschaft wegzuziehen") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Bereitschaft aus der Bodenseeregion wegzuziehen") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+p3_ohne
+# ggsave("to_deliver/wegziehen_wohnort_gesamt.pdf")
+```
+
+**Fokus auf die Länder**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+dp3_ch <- dp3 %>% filter(., sdf_wohnort == "ch") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
+
+dp3_au <- dp3 %>% filter(., sdf_wohnort == "au") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
+
+dp3_de <- dp3 %>% filter(., sdf_wohnort == "de") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(occurences))*100,2))
+
+dp3_fokus <- rbind(dp3_au,dp3_ch,dp3_de)
+
+
+p3_fokus <- ggplot(data = dp3_fokus, aes(x = te_wegzug, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Bereitschaft wegzuziehen") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Bereitschaft aus der Bodenseeregion wegzuziehen (**Fokus auf die Länder**)") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+p3_fokus
+#ggsave("to_deliver/wegziehen_wohnort_Fokus_Laender.pdf")
+```
+**Vereine**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+dp4 <- data_all %>% select(., c("sdf_wohnort", "te_verein")) %>%
+  group_by(sdf_wohnort,te_verein) %>% summarise(occurences = n())
+
+te_verein <- unlist(strsplit(dp4$te_verein, ",")) %>% as.data.frame()
+names(te_verein) <- "Verein"
+
+te_verein <- table(te_verein) %>% as.data.frame()
+te_verein$te_verein <- as.character(te_verein$te_verein)
+
+te_verein <- te_verein %>% mutate(
+  percent = round((Freq/sum(Freq)*100),2)
+)
+
+# Assign the correct names to each of the "Verein" types
+te_verein$te_verein[te_verein$te_verein == "te_vereine_0"] <- "Fastnachts- / Narrenverein"
+te_verein$te_verein[te_verein$te_verein == "te_vereine_1"] <- "Anderer Traditionsverein"
+te_verein$te_verein[te_verein$te_verein == "te_vereine_2"] <- "Sportverein"
+te_verein$te_verein[te_verein$te_verein == "te_vereine_3"] <- "Kulturverein"
+te_verein$te_verein[te_verein$te_verein == "te_vereine_4"] <- "Umwelt und Naturschutzverein"
+te_verein$te_verein[te_verein$te_verein == "te_vereine_5"] <- "Karitativer und humanitärer Verein"
+te_verein$te_verein[te_verein$te_verein == "te_vereine_12"] <-"Ich bin in keinem Verein aktiv"
+te_verein$te_verein[te_verein$te_verein == "te_vereine_sonstiges"] <-"Sonstiges"
+
+te_verein$te_verein <- factor(te_verein$te_verein,
+                              levels = c("Anderer Traditionsverein","Fastnachts- / Narrenverein",
+                                         "Karitativer und humanitärer Verein","Kulturverein",
+                                         "Ich bin in keinem Verein aktiv","Umwelt und Naturschutzverein",
+                                         "Sportverein","Sonstiges"))
+
+p_verein <- ggplot(te_verein, aes(percent, te_verein,fill=te_verein,alpha = 0.85)) + geom_col()  + 
+  xlab("Prozent %") + ylab(" ") +
+  geom_text(aes(label = percent), size = 3,hjust=-0.5) +  
+  ggtitle("Aktivität in Vereinen (Gesamt)") + xlim(0,50) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.position="none",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) 
+
+p_verein
+
+#ggsave("to_deliver/aktivit_vereine.pdf")
 
 ```
+
+**Welche Dialekte sprechen Sie?**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+dp5 <- data_all %>% select(.,c("sdf_wohnort","te_dialekte_1"))
+
+#remove na values
+dp5 <- na.omit(dp5)
+dp5 <- dp5 %>%
+  group_by(sdf_wohnort,te_dialekte_1) %>% summarise(occurences = n()) %>% 
+  filter(.,sdf_wohnort != "sonstiges")
+
+
+dp5 <- dp5 %>% mutate(
+  percent = round((occurences/sum(occurences))*100,2)
+)
+
+# reordering the levels
+dp5$te_dialekte_1 <- factor(dp5$te_dialekte_1, levels = c("bodensee_alemannisch","schwaebisch",
+                                                          "liechtensteiner",
+                                                          "hochalemannisch", "vorarlberg","keinen"))
+
+
+p5 <- ggplot(data = dp5, aes(x = te_dialekte_1, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Dialekte") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Welche Dialekte sprechen Sie?") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+
+p5
+#ggsave("to_deliver/dialektesprechen.pdf")
+```
+
+
+
+#### General
+
+**Tourist vs Einheimisch**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Heimat oder nicht
+data_t_ein <- general %>% select(.,c(hf_tourist_einheimisch)) %>%
+  group_by(hf_tourist_einheimisch) %>% summarise(occurences = n())
+
+data_t_ein <- data_t_ein %>% mutate(
+  percent = round((occurences/sum(occurences))*100,2)
+)
+
+data_t_ein$hf_tourist_einheimisch[data_t_ein$hf_tourist_einheimisch == "ja"] <- "Einheimisch"
+data_t_ein$hf_tourist_einheimisch[data_t_ein$hf_tourist_einheimisch == "nein"] <- "Tourist"
+
+p_t_e <- ggplot(data_t_ein, aes(x = "", y = percent, fill = hf_tourist_einheimisch)) +
+  geom_col(color = "gray75") + xlab(" ") + ylab("% Prozent") +
+  geom_text(aes(label = percent),
+            position = position_stack(vjust = 0.5), size = 3) + ggtitle("Einheimische - Touristen") + 
+  coord_polar(theta = "y") + scale_fill_manual(values = c("lightsteelblue2", "lightpink2")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),
+        legend.title = element_blank(), legend.position = "bottom",
+        axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+
+# p_t_e
+
+#ggsave("tourist_einheimisch.pdf")
+```
+**Geschlechterverteilung **
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data_gesch <- general %>% select(.,c(sdf_geschlecht)) %>%
+  group_by(sdf_geschlecht) %>% summarise(occurences = n()) %>%
+  na.omit(.) %>% mutate(
+    percent = round((occurences/sum(occurences))*100,2)
+  )
+
+data_gesch$sdf_geschlecht[data_gesch$sdf_geschlecht == "d"] <- "Diverse"
+data_gesch$sdf_geschlecht[data_gesch$sdf_geschlecht == "w"] <- "Weiblich"
+data_gesch$sdf_geschlecht[data_gesch$sdf_geschlecht == "m"] <- "Männlich"
+
+
+p_gesch <- ggplot(data_gesch, aes(x = "", y = percent, fill = sdf_geschlecht)) +
+  geom_col() + xlab(" ") + ylab("% Prozent") +
+  geom_text(aes(label = percent),
+            position = position_stack(vjust = 0.5), size = 3) + ggtitle("Geschlechterverteilung ") + 
+  coord_polar(theta = "y") + scale_fill_manual(values = c("violetred", "gray73", "thistle2")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),
+        legend.title = element_blank(), legend.position = "bottom",
+        axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+#ggsave("to_deliver/geschlechtverteilung.pdf")
+```
+
+**Einheit oder nicht -- Tourist Einheimisch**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+dp6 <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit"))
+
+dp6 <- dp6 %>% na.omit(.) %>%
+  group_by(hf_tourist_einheimisch,hf_einheit) %>% summarise(occurences = n()) %>% mutate(
+    percent = round((occurences/sum(occurences))*100,2)
+  )
+
+# renaming 
+dp6$hf_tourist_einheimisch[dp6$hf_tourist_einheimisch == "ja"] <- "Einheimisch"
+dp6$hf_tourist_einheimisch[dp6$hf_tourist_einheimisch == "nein"] <- "Tourist"
+
+dp6$hf_einheit[dp6$hf_einheit == "ja"] <- "Einheit"
+dp6$hf_einheit[dp6$hf_einheit == "nein"] <- "keine Einheit"
+
+
+p6 <- ggplot(data = dp6, aes(x = hf_einheit, y = percent, fill = hf_tourist_einheimisch)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Einheit oder nicht -- Tourist vs Einheimisch") + ylim(0,100) +
+  scale_fill_manual(values = c("dodgerblue1", "salmon2")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
+
+p6
+#ggsave("to_deliver/einheit_touristvseinheimisch.pdf")
+```
+
+
+**Wie bewerten Sie den grenzüberschreitenden öffentlichen Verkehr?**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+dp7 <- data_all %>% select(., c("hf_grenzverkehr","hf_tourist_einheimisch")) %>%
+  na.omit(.) %>% group_by(hf_grenzverkehr, hf_tourist_einheimisch) %>% summarise(occurences = n()) %>%
+  mutate(percent = round((occurences/521)*100,2))
+
+# renaming 
+dp7$hf_tourist_einheimisch[dp7$hf_tourist_einheimisch == "ja"] <- "Einheimisch"
+dp7$hf_tourist_einheimisch[dp7$hf_tourist_einheimisch == "nein"] <- "Tourist"
+
+
+p7 <- ggplot(dp7, aes(x=hf_grenzverkehr, y=percent, fill = hf_tourist_einheimisch)) + 
+  geom_col(position = "dodge", alpha = 0.8) + xlab("") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Wie bewerten Sie den grenzüberschreitenden öffentlichen Verkehr?") + ylim(0,100) + scale_fill_manual(values = c("dodgerblue1", "salmon2")) +
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
+
+p7
+#ggsave("to_deliver/grenzOV.pdf")
+```
+
 
 
 
