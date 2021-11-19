@@ -218,14 +218,17 @@ p_kultur <- ggplot(df_f5_kultur, aes(x = "", y = percent, fill = Jahreszeit)) +
 p_kultur_natur <- ggplot(data = df_kultur_natur, aes(x = "", y = percent, fill = Jahreszeit )) + 
     geom_bar(stat = "identity", position = position_fill()) +
     geom_text(aes(label = percent), position = position_fill(vjust = 0.5), size = 3) +
-    coord_polar(theta = "y") + ggtitle("Wann ist die Kultur/Natur für den Aufenthalt in\nder Bodenseeregion besonders wichtig?") +  ylab("% Prozent") + 
+    coord_polar(theta = "y") + ggtitle("Wann ist die Kultur/Natur für den Aufenthalt in der Bodenseeregion\nbesonders wichtig?") +  ylab("% Prozent") + 
     facet_wrap(~ type) + scale_fill_manual(values = c("pink", "tan", "khaki","gray93","lightcoral","gray70")) +
-  theme(axis.title.x = element_text(size = 10,face = "bold"),
-          axis.title.y = element_blank()) + 
-    theme(legend.title = element_blank(), legend.position='bottom',
+  theme(plot.title = element_text(size = 11, face = "bold"),
+          axis.title.x = element_text(size = 10,face = "bold"),
+          axis.title.y = element_blank(),
+          legend.title = element_blank(), legend.position='bottom',
           axis.text = element_blank(),
         axis.ticks = element_blank(),
         panel.grid  = element_blank()) 
+
+ggsave("to_deliver/kultur_natur.pdf")
     
 ```
 
