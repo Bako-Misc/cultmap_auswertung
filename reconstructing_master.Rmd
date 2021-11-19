@@ -14,7 +14,12 @@ library(dplyr)
 library(readxl)
 library(reshape)
 library(tidyr)
+
 data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
+
+general <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit","hf_einheit_ja",
+                                    "hf_einheit_nein","hf_grenzverkehr","sdf_geschlecht","sdf_jahrgang"))
+
 data_01 <- data_all %>% select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang","hf_tourist_einheimisch",
                                     "sdf_wohnort", "te_wegzug"))
 ```
@@ -50,12 +55,12 @@ dp1_ohne <- na.omit(dp1)
 p1_ohne <- ggplot(data = dp1_ohne, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
   geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
    geom_text(aes(label = percent),
-            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + 
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + ylim(0,100) + 
   ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (Einheimische und Touristen)") + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2 
-ggsave("einheit_jahrgang_gesamt.pdf")
+ggsave("to_deliver/einheit_jahrgang_gesamt.pdf")
 ```
 
 
@@ -95,13 +100,13 @@ dp1_fokus_all$sdf_jahrgang <- factor(dp1_fokus_all$sdf_jahrgang, levels = c("<18
 p1_fokus <- ggplot(data = dp1_fokus_all, aes(x = sdf_jahrgang, y = percent, fill = hf_einheit)) +
   geom_col(position = "dodge", alpha = 0.8) + xlab("Altersgruppe ") + ylab("Prozent %") + 
    geom_text(aes(label = percent),
-            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + 
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + ylim(0,100) + 
   ggtitle("Wahrnehmung der Bodensseeregion als eine Einheit (**Fokus auf die Altersgruppe**)") +
   ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10, face = "bold")) + css2
-ggsave("einheit_jahrgang_focus.pdf")
+ggsave("to_deliver/einheit_jahrgang_fokus.pdf")
 
 
 
@@ -159,12 +164,12 @@ p2_ohne <- ggplot(data = dp2_ohne, aes(x = hf_einheit, y = percent, fill = sdf_w
   geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort ") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (Einheimische)") + 
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (Einheimische)") + ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
 
-ggsave("einheit_wohnort_ohne.pdf")
+ggsave("to_deliver/einheit_wohnort_gesamt.pdf")
 
 ```
 
@@ -195,12 +200,12 @@ p2_fokus <- ggplot(data = dp2_fokus, aes(x = hf_einheit, y = percent, fill = sdf
   geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (**Fokus auf die Länder**)") + 
+  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (**Fokus auf die Länder**)") + ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
 
-ggsave("einheitwohnort_Fokus_Laender.pdf")
+ggsave("to_deliver/einheitwohnort_Fokus_Laender.pdf")
 ```
 
 
@@ -225,12 +230,12 @@ p3_ohne <- ggplot(data = dp3_ohne, aes(x = te_wegzug, y = percent, fill = sdf_wo
   geom_col(position = "dodge", alpha = 0.8) + xlab("Bereitschaft wegzuziehen") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Bereitschaft aus der Bodenseeregion wegzuziehen") + 
+  ggtitle("Bereitschaft aus der Bodenseeregion wegzuziehen") + ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
 
-ggsave("wegziehen_wohnort_ohne.pdf")
+ggsave("to_deliver/wegziehen_wohnort_gesamt.pdf")
 ```
 
 ### Bereitschaft aus der Bodenseeregion wegzuziehen -- Fokus auf die Länder
@@ -252,12 +257,12 @@ p3_fokus <- ggplot(data = dp3_fokus, aes(x = te_wegzug, y = percent, fill = sdf_
   geom_col(position = "dodge", alpha = 0.8) + xlab("Bereitschaft wegzuziehen") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Bereitschaft aus der Bodenseeregion wegzuziehen (**Fokus auf die Länder**)") + 
+  ggtitle("Bereitschaft aus der Bodenseeregion wegzuziehen (**Fokus auf die Länder**)") + ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
 
-ggsave("wegziehen_wohnort_Fokus_Laender.pdf")
+ggsave("to_deliver/wegziehen_wohnort_Fokus_Laender.pdf")
 ```
 ### Vereine
 ```{r}
@@ -293,12 +298,12 @@ te_verein$te_verein <- factor(te_verein$te_verein,
 p_verein <- ggplot(te_verein, aes(percent, te_verein,fill=te_verein,alpha = 0.85)) + geom_col()  + 
   xlab("Prozent %") + ylab(" ") +
   geom_text(aes(label = percent), size = 3,hjust=-0.5) +  
-  ggtitle("Aktivität in Vereinen (Gesamt)") + xlim(0,30) + 
+  ggtitle("Aktivität in Vereinen (Gesamt)") + xlim(0,50) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.position="none",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) 
 
-ggsave("aktivit_vereine.pdf")
+ggsave("to_deliver/aktivit_vereine.pdf")
 
 ```
 
@@ -328,12 +333,12 @@ p5 <- ggplot(data = dp5, aes(x = te_dialekte_1, y = percent, fill = sdf_wohnort)
   geom_col(position = "dodge", alpha = 0.8) + xlab("Dialekte") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Welche Dialekte sprechen Sie?") + 
+  ggtitle("Welche Dialekte sprechen Sie?") + ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
 
-ggsave("dialektesprechen.pdf")
+ggsave("to_deliver/dialektesprechen.pdf")
 ```
 
 
@@ -361,7 +366,12 @@ p_t_e <- ggplot(data_t_ein, aes(x = "", y = percent, fill = hf_tourist_einheimis
   coord_polar(theta = "y") + scale_fill_manual(values = c("lightsteelblue2", "lightpink2")) + 
   theme(plot.title = element_text(size = 11, face = "bold"),
         legend.title = element_blank(), legend.position = "bottom",
-        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"))
+        axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+
 
 ggsave("tourist_einheimisch.pdf")
 ```
