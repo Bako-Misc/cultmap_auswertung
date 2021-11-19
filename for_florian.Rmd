@@ -135,11 +135,100 @@ levels(orte$orte) <- c("Allensbach","Bregenz","Dornbirn","Feldkirch","Friedrichs
 p_orte <- ggplot(orte, aes(percent, orte, fill=orte, alpha = 0.85)) + geom_col()  + 
   xlab("Prozent %") + ylab(" ") +
   geom_text(aes(label = percent), size = 3,hjust=-0.5) +  
-  ggtitle("An welchen Orten planen Sie während Ihres aktuellen Aufenthalts\neinen Besuch nin einem anderen Anrainerstaat des Bodensees??") + xlim(0,30) + 
+  ggtitle("An welchen Orten planen Sie während Ihres aktuellen Aufenthalts\neinen Besuch nin einem anderen Anrainerstaat des Bodensees?") + xlim(0,30) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.position="none",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
-        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) 
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
+
+ggsave("to_deliver/besuch_bodensee_JA.pdf")
 ```
+
+```{r}
+df_f4 <- data_all %>% select(., c("te_tourist_einheimisch","te_jahreszeit_fruehling",
+                                  "te_jahreszeit_sommer","te_jahreszeit_herbst","te_jahreszeit_winter")) %>% filter(.,te_tourist_einheimisch == "tourist")
+
+
+df_f5 <- data_all %>% select(., c("te_tourist_einheimisch","te_jahreszeit_natur",
+                                  "te_jahreszeit_kultur")) %>% filter(.,te_tourist_einheimisch == "tourist")
+
+df_f5_natur <- df_f5 %>% select(.,c("te_jahreszeit_natur")) %>% na.omit()
+df_f5_kultur <- df_f5 %>% select(.,c("te_jahreszeit_kultur")) %>% na.omit()
+
+# Natur
+df_f5_natur <- unlist(strsplit(df_f5_natur$te_jahreszeit_natur, ",")) %>% as.data.frame()
+df_f5_natur <- table(df_f5_natur) %>% as.data.frame()
+df_f5_natur <- df_f5_natur %>% mutate(
+  percent = round((Freq/sum(Freq))*100,2),
+  type = "Natur"
+)
+
+
+# Kultur
+df_f5_kultur <- unlist(strsplit(df_f5_kultur$te_jahreszeit_kultur, ",")) %>% as.data.frame()
+df_f5_kultur <- table(df_f5_kultur) %>% as.data.frame()
+df_f5_kultur <- df_f5_kultur %>% mutate(
+  percent = round((Freq/sum(Freq))*100,2),
+  type = "Kultur"
+)
+
+names(df_f5_natur)[1] <- c("Jahreszeit")
+names(df_f5_kultur)[1] <- c("Jahreszeit")
+df_kultur_natur <- rbind(df_f5_natur,df_f5_kultur)
+
+
+## Plot
+p6 <- ggplot(data = df_kultur_natur, aes(x = Jahreszeit, y = percent, fill = type)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("") + ylim(0,100) +
+  scale_fill_manual(values = c("plum2", "lightgreen")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
+
+
+## or 
+p_natur <- ggplot(df_f5_natur, aes(x = "", y = percent, fill = Jahreszeit)) +
+  geom_col() + xlab(" ") + ylab("% Prozent") +
+  geom_text(aes(label = percent),
+            position = position_stack(vjust = 0.5), size = 3) + ggtitle("Wann ist die Natur für den Aufenthalt in\nder Bodenseeregion besonders wichtig?") + 
+  coord_polar(theta = "y") + scale_fill_manual(values = c("pink", "tan", "khaki","gray93","lightcoral","gray70")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),
+        legend.title = element_blank(), legend.position = "bottom",
+        axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+p_kultur <- ggplot(df_f5_kultur, aes(x = "", y = percent, fill = Jahreszeit)) +
+  geom_col() + xlab(" ") + ylab("% Prozent") +
+  geom_text(aes(label = percent),
+            position = position_stack(vjust = 0.5), size = 3) + ggtitle("Wann ist die Kultur für den Aufenthalt in\nder Bodenseeregion besonders wichtig?") + 
+  coord_polar(theta = "y") + scale_fill_manual(values = c("pink", "tan", "khaki","gray93","lightcoral","gray70")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),
+        legend.title = element_blank(), legend.position = "bottom",
+        axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+
+## OR combined in Pie charts
+p_kultur_natur <- ggplot(data = df_kultur_natur, aes(x = "", y = percent, fill = Jahreszeit )) + 
+    geom_bar(stat = "identity", position = position_fill()) +
+    geom_text(aes(label = percent), position = position_fill(vjust = 0.5), size = 3) +
+    coord_polar(theta = "y") + ggtitle("Wann ist die Kultur/Natur für den Aufenthalt in\nder Bodenseeregion besonders wichtig?") +  ylab("% Prozent") + 
+    facet_wrap(~ type) + scale_fill_manual(values = c("pink", "tan", "khaki","gray93","lightcoral","gray70")) +
+  theme(axis.title.x = element_text(size = 10,face = "bold"),
+          axis.title.y = element_blank()) + 
+    theme(legend.title = element_blank(), legend.position='bottom',
+          axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank()) 
+    
+```
+
 
 
 
