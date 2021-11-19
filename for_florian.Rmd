@@ -47,11 +47,98 @@ p_gruende <- ggplot(gruende, aes(percent, gruende, fill=gruende,alpha = 0.85)) +
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) 
 
 
-ggsave("to_deliver/grund_ausflug.pdf")
+#ggsave("to_deliver/grund_ausflug.pdf")
 
 df_gruende <- gruende %>% as.data.frame()
-write.csv(df_gruende,"to_deliver/tables/gruende_ausflug.csv", row.names = F)
+#write.csv(df_gruende,"to_deliver/tables/gruende_ausflug.csv", row.names = F)
+```
 
+## te_erlebnisse
+```{r  message=FALSE, warning=FALSE, include=FALSE}
+df_f2 <- data_all %>% select(., c("te_tourist_einheimisch","sdf_geschlecht",
+                               "sdf_jahrgang", "te_erlebnisse")) %>%
+  filter(.,te_tourist_einheimisch == "tourist") %>% 
+  group_by(te_erlebnisse,sdf_jahrgang)
+
+
+erlebnisse <- unlist(strsplit(df_f2$te_erlebnisse, ",")) %>% as.data.frame()
+
+erlebnisse <- table(erlebnisse) %>% as.data.frame() # getting the frequencies
+
+
+erlebnisse <- erlebnisse %>% mutate(
+  percent = round((Freq/sum(Freq)*100),2)
+)
+
+levels(erlebnisse$erlebnisse)[1:9] <- c("Abenteuer","Erholung","Gesundheit","Kultur",
+                                        "Natur","Party","Shopping","Sonstiges","Sport")
+
+
+p_erlebnisse <- ggplot(erlebnisse, aes(percent, erlebnisse, fill=erlebnisse,alpha = 0.85)) + geom_col()  + 
+  xlab("Prozent %") + ylab(" ") +
+  geom_text(aes(label = percent), size = 3,hjust=-0.5) +  
+  ggtitle("Für welche Erlebnisse sehen Sie die\nBodenseeregion als besonders geeignet an?") + xlim(0,30) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.position="none",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) 
+
+ggsave("to_deliver/erlebnisse_bodensee.pdf")
+# 
+# df_erlebnisse <- erlebnisse %>% as.data.frame()
+# write.csv(df_erlebnisse,"to_deliver/tables/erlebnisse_bodensee.csv", row.names = F)
+```
+
+```{r}
+df_f3 <- data_all %>% select(., c("te_tourist_einheimisch","te_anrainerstaat",
+                               "te_anrainer_orte")) %>% filter(.,te_tourist_einheimisch=="tourist")
+
+df_f3_1 <- df_f3 %>% select(.,"te_anrainerstaat") %>% na.omit() %>%
+  table() %>% as.data.frame()
+names(df_f3_1) <- c("Besuch","Freq")
+
+df_f3_1 <- df_f3_1 %>% mutate(
+  percent = round((Freq/sum(Freq)*100),2)
+)
+
+
+p_besuch <- ggplot(df_f3_1, aes(x = "", y = percent, fill = Besuch)) +
+  geom_col() + xlab(" ") + ylab("% Prozent") +
+  geom_text(aes(label = percent),
+            position = position_stack(vjust = 0.5), size = 3) + ggtitle("Planen Sie während Ihres aktuellen Aufenthalts einen Besuch\nin einem anderen Anrainerstaat des Bodensees?") + 
+  coord_polar(theta = "y") + scale_fill_manual(values = c("lightsteelblue2", "lightpink2")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),
+        legend.title = element_blank(), legend.position = "bottom",
+        axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+#ggsave("to_deliver/besuch_bodensee.pdf")
+
+
+##### Wenn JA
+df_f3_2 <- df_f3 %>% select(.,"te_anrainerstaat","te_anrainer_orte") %>% na.omit()
+
+
+orte <- unlist(strsplit(df_f3_2$te_anrainer_orte, ",")) %>% as.data.frame()
+
+orte <- table(orte) %>% as.data.frame()
+
+orte <- orte %>% mutate(
+  percent = round((Freq/sum(Freq)*100),2)
+)
+
+levels(orte$orte) <- c("Allensbach","Bregenz","Dornbirn","Feldkirch","Friedrichshafen","Konstanz",
+                       "Kreuzlingen","Lindau","Meersburg","Radolfzell","Ravensburg","Romanshorn",
+                       "Singen","Sonstiges","St_gallen","Stein_am_rhein","Überlingen","Winterthur")
+
+p_orte <- ggplot(orte, aes(percent, orte, fill=orte, alpha = 0.85)) + geom_col()  + 
+  xlab("Prozent %") + ylab(" ") +
+  geom_text(aes(label = percent), size = 3,hjust=-0.5) +  
+  ggtitle("An welchen Orten planen Sie während Ihres aktuellen Aufenthalts\neinen Besuch nin einem anderen Anrainerstaat des Bodensees??") + xlim(0,30) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.position="none",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) 
 ```
 
 

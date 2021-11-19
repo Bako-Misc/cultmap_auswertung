@@ -490,14 +490,14 @@ p6 <- ggplot(data = dp6, aes(x = hf_einheit, y = percent, fill = te_tourist_einh
   geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Einheit oder nicht -- Tourist vs Einheimisch") + ylim(0,100) +
+  ggtitle("Sind Sie als Tourist/in oder Einwohner/in in der Bodenseeregion unterwegs?") + ylim(0,100) +
   scale_fill_manual(values = c("dodgerblue1", "salmon2")) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
 
 p6
-#ggsave("to_deliver/einheit_touristvseinheimisch.pdf")
+ggsave("to_deliver/einheit_touristvseinheimisch.pdf")
 ```
 
 
