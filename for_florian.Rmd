@@ -1,0 +1,58 @@
+---
+title: ''
+author: "Nikos Bakogiannis"
+date: "19 11 2021"
+output: html_document
+---
+
+```{r import data, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(reshape)
+library(tidyr)
+
+
+data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
+
+df_f1 <- data_all %>% select(., c("te_tourist_einheimisch","sdf_geschlecht",
+                               "sdf_jahrgang", "te_gruende_tourist")) %>%
+  filter(., te_tourist_einheimisch == "tourist") %>% group_by(
+    
+ sdf_jahrgang, te_gruende_tourist)
+
+# Aus welchen Gründen haben Sie sich für einen Ausflug in die Bodenseeregion entschieden?
+
+gruende <- unlist(strsplit(df_f1$te_gruende_tourist, ",")) %>% as.data.frame()
+names(gruende) <- "Ausflug_Gruende"
+
+gruende <- table(gruende) %>% as.data.frame()
+gruende$Ausflug_Gruende <- as.character(gruende$Ausflug_Gruende)
+
+gruende <- gruende %>% mutate(
+  percent = round((Freq/sum(Freq)*100),2)
+)
+
+levels(gruende$gruende)[1:14] <- c("Erholung","Freunde","Gastronomie","Gesundheit","Gewohnheit",
+                                   "Inspiration","Internationalität","Kultur","Nähe","Natur",
+                                   "Shopping","Sonstiges","Sport","Ich weiss nicht") 
+
+p_gruende <- ggplot(gruende, aes(percent, gruende, fill=gruende,alpha = 0.85)) + geom_col()  + 
+  xlab("Prozent %") + ylab(" ") +
+  geom_text(aes(label = percent), size = 3,hjust=-0.5) +  
+  ggtitle("Aus welchen Gründen haben Sie sich für einen Ausflug in die\nBodenseeregion entschieden?") + xlim(0,30) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.position="none",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) 
+
+
+ggsave("to_deliver/grund_ausflug.pdf")
+
+df_gruende <- gruende %>% as.data.frame()
+write.csv(df_gruende,"to_deliver/tables/gruende_ausflug.csv", row.names = F)
+
+```
+
+
+

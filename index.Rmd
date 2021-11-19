@@ -20,7 +20,7 @@ library(tidyr)
 data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
 
 general <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit","hf_einheit_ja",
-                                    "hf_einheit_nein","hf_grenzverkehr","sdf_geschlecht","sdf_jahrgang", "te_tourist_einheimisch"))
+                                    "hf_einheit_nein","hf_grenzverkehr","sdf_geschlecht","sdf_jahrgang", "te_tourist_einheimisch","te_wegzug","te_ausland","sdf_wohnort"))
 
 data_01 <- data_all %>% select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang","hf_tourist_einheimisch",
                                     "sdf_wohnort", "te_wegzug", "te_tourist_einheimisch"))
@@ -218,7 +218,7 @@ ggsave("to_deliver/einheitwohnort_Fokus_Laender.pdf")
 **Bereitschaft aus der Bodenseeregion wegzuziehen**
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-data_03 <- data_all %>% select(., c("sdf_wohnort", "te_wegzug"))
+data_03 <- data_all %>% select(., c("sdf_wohnort", "te_wegzug","te_tourist_einheimisch"))
 
 # cleaning
 dp3 <- data_03 %>% filter(., sdf_wohnort != "NA") %>% 
@@ -244,6 +244,29 @@ p3_ohne
 #ggsave("to_deliver/wegziehen_wohnort_gesamt.pdf")
 
 ## TODO FOR AUSLAND te_ausland -- Können Sie sich vorstellen in einem anderen Teil der Bodenseeregion jenseits der Grenze zu leben?
+
+dp33 <- general %>% select(., c("sdf_wohnort", "te_ausland","te_tourist_einheimisch"))
+dp33 <- dp33 %>% filter(., te_tourist_einheimisch == "einheimisch") %>% na.omit(.)
+
+dp33 <- dp33 %>% group_by(sdf_wohnort,te_ausland,te_tourist_einheimisch) %>% 
+  summarise(occurences = n())
+
+dp33 <- dp33 %>% mutate(
+    percent = round((occurences/273)*100,2)
+  ) %>% filter(.,sdf_wohnort !="sonstiges")
+
+p33 <- ggplot(data = dp33, aes(x = te_ausland, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Bereitschaft wegzuziehen") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Können Sie sich vorstellen in einem anderen Teil der Bodenseeregion \njenseits der Grenze zu leben?") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+ggsave("to_deliver/wegziehen_aus_wohnort_gesamt.pdf")
+
+
 ```
 
 **Fokus auf die Länder**
@@ -266,13 +289,40 @@ p3_fokus <- ggplot(data = dp3_fokus, aes(x = te_wegzug, y = percent, fill = sdf_
   geom_col(position = "dodge", alpha = 0.8) + xlab("Bereitschaft wegzuziehen") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Können Sie sich vorstellen aus der Bodenseeregion wegzuziehen? \n (**Fokus auf die Länder**)") + ylim(0,100) + 
+  ggtitle("Können Sie sich vorstellen aus der Bodenseeregion wegzuziehen? \n(**Fokus auf die Länder**)") + ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
 
 p3_fokus
 #ggsave("to_deliver/wegziehen_wohnort_Fokus_Laender.pdf")
+
+## te ausland
+dp33 <- general %>% select(., c("sdf_wohnort", "te_ausland","te_tourist_einheimisch")) %>%
+  group_by(te_ausland,sdf_wohnort) %>% summarise(occurences = n()) %>% na.omit(.) %>%
+  filter(., sdf_wohnort != "sonstiges")
+
+dp33_ch <- dp33 %>% filter(., sdf_wohnort == "ch") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(.$occurences))*100,2))
+
+dp33_au <- dp33 %>% filter(., sdf_wohnort == "au") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(.$occurences))*100,2))
+
+dp33_de <- dp33 %>% filter(., sdf_wohnort == "de") %>% na.omit(.) %>%
+  mutate(percent = round((occurences/sum(.$occurences))*100,2))
+
+dp33_fokus <- rbind(dp33_au,dp33_ch,dp33_de)
+
+p33_fokus <- ggplot(data = dp33_fokus, aes(x = te_ausland, y = percent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Bereitschaft wegzuziehen") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Können Sie sich vorstellen in einem anderen Teil der Bodenseeregion \njenseits der Grenze zu leben?  (**Fokus auf die Länder**)") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
+
+ggsave("to_deliver/wegziehen_wohnort_aus_Fokus_Laender.pdf")
 ```
 **Vereine**
 
@@ -494,11 +544,19 @@ ggsave("to_deliver/grenzOV_touristen.pdf")
 **Einwohner Bodenseeregion??**
 
 ```{r}
-dp8 <- data_all %>% select(., c("te_einwohner_code","hf_tourist_einheimisch","sdf_wohnort")) %>%
-  filter(., hf_tourist_einheimisch == "ja")
+dp8 <- data_all %>% select(., c("te_einwohner","te_einwohner_2","sdf_wohnort")) %>%
+  na.omit()
 
-dp8$te_einwohner_code[dp8$te_einwohner_code = 1] <- "Als Einwohner/in Ihres Wohnortes"
-dp8$te_einwohner_code[dp8$te_einwohner_code = 2] <- "Als Einwohner/in Ihres Wohnortes"
+dp8$te_einwohner[dp8$te_einwohner == "te_einwohner_wohnort"] <- "Als Einwohner/in Ihres Wohnortes"
+dp8$te_einwohner[dp8$te_einwohner == "te_einwohner_bodenseeregion"] <- "Einwohner/in der Bodenseeregion"
+
+dp8$te_einwohner_2[dp8$te_einwohner_2 == "te_einwohner_ch"] <- "Als Schweizer/in"
+dp8$te_einwohner_2[dp8$te_einwohner_2 == "te_einwohner_de"] <- "Als Deutsche/r"
+dp8$te_einwohner_2[dp8$te_einwohner_2 == "te_einwohner_au"] <- "Als Österreicher/in"
+dp8$te_einwohner_2[dp8$te_einwohner_2 == "te_einwohner_li"] <- "Als Liechtensteiner/in"
+dp8$te_einwohner_2[dp8$te_einwohner_2 == "te_einwohner_europa"] <- "Als Europäer/in"
+
+## TO DOs Plots
 ```
 
 
