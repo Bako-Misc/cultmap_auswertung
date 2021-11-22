@@ -233,5 +233,30 @@ ggsave("to_deliver/kultur_natur.pdf")
 ```
 
 
+## Würden Sie noch einmal zu einer anderen Jahreszeit in der Bodenseeregion Ferien machen?
+```{r}
+dp9 <- data_all %>% select(c("te_jahreszeit_ja_nein","te_tourist_einheimisch")) %>%
+  filter(., te_tourist_einheimisch == "tourist") %>% na.omit()
+
+dp9 <- dp9 %>% group_by(te_jahreszeit_ja_nein,te_tourist_einheimisch) %>%
+  summarise(occurences = n()) %>% mutate(
+    percent = round((occurences/170)*100,2)
+  )
+
+
+p9_ferien <- ggplot(data = dp9, aes(x = "", y = percent, fill = te_jahreszeit_ja_nein )) + 
+    geom_bar(stat = "identity", position = position_fill()) +
+    geom_text(aes(label = percent), position = position_fill(vjust = 0.5), size = 3) +
+    coord_polar(theta = "y") + ggtitle("Würden Sie noch einmal zu einer anderen Jahreszeit in der\nBodenseeregion Ferien machen?") +  ylab("% Prozent") + scale_fill_manual(values = c("palegreen1", "pink1", "gray80")) +
+  theme(plot.title = element_text(size = 11, face = "bold"),
+          axis.title.x = element_text(size = 10,face = "bold"),
+          axis.title.y = element_blank(),
+          legend.title = element_blank(), legend.position='bottom',
+          axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+ggsave("to_deliver/ferien_ja_nein.pdf")
+```
 
 
