@@ -28,7 +28,7 @@ gruende <- unlist(strsplit(df_f1$te_gruende_tourist, ",")) %>% as.data.frame()
 names(gruende) <- "Ausflug_Gruende"
 
 gruende <- table(gruende) %>% as.data.frame()
-gruende$Ausflug_Gruende <- as.character(gruende$Ausflug_Gruende)
+#gruende$Ausflug_Gruende <- as.character(gruende$Ausflug_Gruende)
 
 gruende <- gruende %>% mutate(
   percent = round((Freq/sum(Freq)*100),2)
@@ -49,7 +49,7 @@ p_gruende <- ggplot(gruende, aes(percent, gruende, fill=gruende,alpha = 0.85)) +
 
 #ggsave("to_deliver/grund_ausflug.pdf")
 
-df_gruende <- gruende %>% as.data.frame()
+# df_gruende <- gruende %>% as.data.frame()
 #write.csv(df_gruende,"to_deliver/tables/gruende_ausflug.csv", row.names = F)
 ```
 
@@ -135,7 +135,7 @@ levels(orte$orte) <- c("Allensbach","Bregenz","Dornbirn","Feldkirch","Friedrichs
 p_orte <- ggplot(orte, aes(percent, orte, fill=orte, alpha = 0.85)) + geom_col()  + 
   xlab("Prozent %") + ylab(" ") +
   geom_text(aes(label = percent), size = 3,hjust=-0.5) +  
-  ggtitle("An welchen Orten planen Sie während Ihres aktuellen Aufenthalts\neinen Besuch nin einem anderen Anrainerstaat des Bodensees?") + xlim(0,30) + 
+  ggtitle("An welchen Orten planen Sie während Ihres aktuellen Aufenthalts\neinen Besuch in einem anderen Anrainerstaat des Bodensees?") + xlim(0,30) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.position="none",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
@@ -257,6 +257,105 @@ p9_ferien <- ggplot(data = dp9, aes(x = "", y = percent, fill = te_jahreszeit_ja
         panel.grid  = element_blank())
 
 ggsave("to_deliver/ferien_ja_nein.pdf")
+```
+
+### Wie attraktiv finden Sie die Jahreszeiten für einen Urlaub in der Bodenseeregion?
+```{r}
+dp10 <- data_all %>% select(c("te_jahreszeit_attraktiv","te_jahreszeit_fruehling","te_jahreszeit_sommer",
+                              "te_jahreszeit_herbst","te_jahreszeit_winter"))
+```
+
+```{r message=FALSE, warning=FALSE}
+library(circlize)
+dp11 <- data_all %>% select(c("te_anrainer", "te_tourist_einheimisch","befragungsort_list")) %>%
+  filter(.,te_tourist_einheimisch == "tourist" & !is.na(te_anrainer) & !is.na(befragungsort_list))
+
+dp11_filter <- dp11 %>% select(!te_tourist_einheimisch) %>% group_by(te_anrainer,befragungsort_list)
+
+
+antworten <- unlist(strsplit(dp11_filter$te_anrainer, ",")) %>% as.data.frame()
+
+# Bregenz
+dp11_breg <- dp11 %>% filter(., befragungsort_list == "Bregenz")
+antworten_breg <- unlist(strsplit(dp11_breg$te_anrainer, ",")) %>% as.data.frame() %>%
+  mutate(Ort = "Bregenz")
+names(antworten_breg)[1] <- "Antwort"
+antworten_breg <- antworten_breg %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
+
+# Dornbin
+dp11_dorn <- dp11 %>% filter(., befragungsort_list == "Dornbirn")
+antworten_dorn <- unlist(strsplit(dp11_dorn$te_anrainer, ",")) %>% as.data.frame() %>%
+  mutate(Ort = "Dornbin")
+names(antworten_dorn)[1] <- "Antwort"
+antworten_dorn <- antworten_dorn %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
+
+# Konstanz
+dp11_kons <- dp11 %>% filter(., befragungsort_list == "Konstanz")
+antworten_kons <- unlist(strsplit(dp11_kons$te_anrainer, ",")) %>% as.data.frame() %>%
+  mutate(Ort = "Konstanz")
+names(antworten_kons)[1] <- "Antwort"
+antworten_kons <- antworten_kons %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
+
+# Meersburg
+dp11_meer <- dp11 %>% filter(., befragungsort_list == "Meersburg")
+antworten_meer <- unlist(strsplit(dp11_meer$te_anrainer, ",")) %>% as.data.frame() %>%
+  mutate(Ort = "Meersburg")
+names(antworten_meer)[1] <- "Antwort"
+antworten_meer <- antworten_meer %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
+
+# Romanshorn
+dp11_roman <- dp11 %>% filter(., befragungsort_list == "Romanshorn")
+antworten_roman <- unlist(strsplit(dp11_roman$te_anrainer, ",")) %>% as.data.frame() %>%
+  mutate(Ort = "Meersburg")
+names(antworten_roman)[1] <- "Antwort"
+antworten_roman <- antworten_roman %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
+
+# St. Gallen
+dp11_stga <- dp11 %>% filter(., befragungsort_list == "St. Gallen")
+antworten_stgal <- unlist(strsplit(dp11_stga$te_anrainer, ",")) %>% as.data.frame() %>%
+  mutate(Ort = "Meersburg")
+names(antworten_stgal)[1] <- "Antwort"
+antworten_stgal <- antworten_stgal %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
+
+# Combine all together
+dp11_together <- rbind(antworten_breg,antworten_dorn,antworten_kons,antworten_meer,
+                       antworten_roman,antworten_stgal)
+
+## Rebranding
+dp11_together$Antwort[dp11_together$Antwort == "ja_au"] <- "Ja, im österreichischen Teil"
+dp11_together$Antwort[dp11_together$Antwort == "ja_ch"] <- "Ja, im schweizerischen Teil"
+dp11_together$Antwort[dp11_together$Antwort == "ja_de"] <- "Ja, im deutschen Teil"
+dp11_together$Antwort[dp11_together$Antwort == "Nein, kann ich mir nicht vorstellen"] <- "Nein"
+dp11_together$Antwort[dp11_together$Antwort == "vielleicht"] <- "Vielleicht"
+
+
+chordDiagram(dp11_together)
+```
+
+### Gründe keine Ferien zu machen
+```{r}
+install.packages("wordcloud")
+library(wordcloud)
+install.packages("RColorBrewer")
+library(RColorBrewer)
+install.packages("wordcloud2")
+library(wordcloud2)
+install.packages("tm")
+library(tm)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+dp12 <- data_all %>% select(.,c("te_anrainer_de","te_anrainer_au","te_anrainer_ch","te_tourist_einheimisch")) %>%
+  filter(.,te_tourist_einheimisch == "tourist")
+
+dp12_de <- dp12 %>% select(., c("te_anrainer_de")) %>% na.omit()
+dp12_ch <- dp12 %>% select(.,c("te_anrainer_ch")) %>% na.omit()
+dp12_au <- dp12 %>% select(.,c("te_anrainer_au")) %>% na.omit()
+
+write.csv(dp12_de,"to_deliver/tables/gruende_keinFer_de.csv", row.names = F)
+write.csv(dp12_ch,"to_deliver/tables/gruende_keinFer_ch.csv", row.names = F)
+write.csv(dp12_au,"to_deliver/tables/gruende_keinFer_au.csv", row.names = F)
+
 ```
 
 

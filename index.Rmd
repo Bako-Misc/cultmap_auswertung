@@ -560,17 +560,6 @@ dp8$te_einwohner_2[dp8$te_einwohner_2 == "te_einwohner_europa"] <- "Als Europäe
 ```
 
 
-## Würden Sie noch einmal zu einer anderen Jahreszeit in der Bodenseeregion Ferien machen?
-```{r}
-dp9 <- data_all %>% select(c("te_jahreszeit_ja_nein","te_tourist_einheimisch")) %>%
-  filter(., te_tourist_einheimisch == "tourist") %>% na.omit()
-
-dp9 <- dp9 %>% group_by(te_jahreszeit_ja_nein,te_tourist_einheimisch) %>%
-  summarise(occurences = n()) %>% mutate(
-    percent = round((occurences/170)*100,2)
-  )
-
-```
 
 
 
