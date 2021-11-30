@@ -345,17 +345,95 @@ library(tm)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-dp12 <- data_all %>% select(.,c("te_anrainer_de","te_anrainer_au","te_anrainer_ch","te_tourist_einheimisch")) %>%
-  filter(.,te_tourist_einheimisch == "tourist")
+dp12 <- data_all %>% select(.,c("te_gruende_tourist","te_tourist_einheimisch","befragungsort_list")) %>%
+  filter(., te_tourist_einheimisch == "tourist")
 
 dp12_de <- dp12 %>% select(., c("te_anrainer_de")) %>% na.omit()
 dp12_ch <- dp12 %>% select(.,c("te_anrainer_ch")) %>% na.omit()
 dp12_au <- dp12 %>% select(.,c("te_anrainer_au")) %>% na.omit()
 
-write.csv(dp12_de,"to_deliver/tables/gruende_keinFer_de.csv", row.names = F)
-write.csv(dp12_ch,"to_deliver/tables/gruende_keinFer_ch.csv", row.names = F)
-write.csv(dp12_au,"to_deliver/tables/gruende_keinFer_au.csv", row.names = F)
+# write.csv(dp12_de,"to_deliver/tables/gruende_keinFer_de.csv", row.names = F)
+# write.csv(dp12_ch,"to_deliver/tables/gruende_keinFer_ch.csv", row.names = F)
+# write.csv(dp12_au,"to_deliver/tables/gruende_keinFer_au.csv", row.names = F)
+```
 
+```{r}
+dp13 <- data_all %>% select(., c("te_jahreszeit_attraktiv","te_jahreszeit_fruehling","te_jahreszeit_sommer",
+                                 "te_jahreszeit_herbst","te_jahreszeit_winter"))
+
+dp13_frue <- dp13 %>% select(., c("te_jahreszeit_fruehling"))
+dp13_frue$te_jahreszeit_fruehling[dp13_frue$te_jahreszeit_fruehling == "1_1"] <- "sehr attraktiv"
+dp13_frue$te_jahreszeit_fruehling[dp13_frue$te_jahreszeit_fruehling == "1_2"] <- "-"
+dp13_frue$te_jahreszeit_fruehling[dp13_frue$te_jahreszeit_fruehling == "1_3"] <- "--"
+dp13_frue$te_jahreszeit_fruehling[dp13_frue$te_jahreszeit_fruehling == "1_4"] <- "---"
+dp13_frue$te_jahreszeit_fruehling[dp13_frue$te_jahreszeit_fruehling == "1_5"] <- "----"
+dp13_frue$te_jahreszeit_fruehling[dp13_frue$te_jahreszeit_fruehling == "1_6"] <- "sehr unattraktiv"
+dp13_frue <- dp13_frue %>% na.omit() %>% group_by(te_jahreszeit_fruehling) %>%
+  summarise(occurences = n()) %>% mutate(percentage = round((occurences/172)*100,2),
+                                         type = "Frühling")
+dp13_frue$te_jahreszeit_fruehling <- factor(dp13_frue$te_jahreszeit_fruehling, levels = c("sehr attraktiv", "-","--","---","----","sehr unattraktiv"))
+names(dp13_frue)[1] <- "Jahreszeit"
+
+
+dp13_som <- dp13 %>% select(., c("te_jahreszeit_sommer"))
+dp13_som$te_jahreszeit_sommer[dp13_som$te_jahreszeit_sommer == "2_1"] <- "sehr attraktiv"
+dp13_som$te_jahreszeit_sommer[dp13_som$te_jahreszeit_sommer == "2_2"] <- "-"
+dp13_som$te_jahreszeit_sommer[dp13_som$te_jahreszeit_sommer == "2_3"] <- "--"
+dp13_som$te_jahreszeit_sommer[dp13_som$te_jahreszeit_sommer == "2_4"] <- "---"
+dp13_som$te_jahreszeit_sommer[dp13_som$te_jahreszeit_sommer == "2_5"] <- "----"
+dp13_som$te_jahreszeit_sommer[dp13_som$te_jahreszeit_sommer == "2_6"] <- "sehr unattraktiv"
+dp13_som <- dp13_som %>% na.omit() %>% group_by(te_jahreszeit_sommer) %>%
+  summarise(occurences = n()) %>% mutate(percentage = round((occurences/175)*100,2),
+                                         type = "Sommer")
+dp13_som$te_jahreszeit_sommer <- factor(dp13_som$te_jahreszeit_sommer, levels = c("sehr attraktiv", "-","--","---","----","sehr unattraktiv"))
+names(dp13_som)[1] <- "Jahreszeit"
+
+
+dp13_her <- dp13 %>% select(., c("te_jahreszeit_herbst"))
+dp13_her$te_jahreszeit_herbst[dp13_her$te_jahreszeit_herbst == "3_1"] <- "sehr attraktiv"
+dp13_her$te_jahreszeit_herbst[dp13_her$te_jahreszeit_herbst == "3_2"] <- "-"
+dp13_her$te_jahreszeit_herbst[dp13_her$te_jahreszeit_herbst == "3_3"] <- "--"
+dp13_her$te_jahreszeit_herbst[dp13_her$te_jahreszeit_herbst == "3_4"] <- "---"
+dp13_her$te_jahreszeit_herbst[dp13_her$te_jahreszeit_herbst == "3_5"] <- "----"
+dp13_her$te_jahreszeit_herbst[dp13_her$te_jahreszeit_herbst == "3_6"] <- "sehr unattraktiv"
+dp13_her <- dp13_her %>% na.omit() %>% group_by(te_jahreszeit_herbst) %>%
+  summarise(occurences = n()) %>% mutate(percentage = round((occurences/171)*100,2),
+                                         type = "Herbst")
+dp13_her$te_jahreszeit_herbst <- factor(dp13_her$te_jahreszeit_herbst, c("sehr attraktiv", "-","--","---","----","sehr unattraktiv"))
+names(dp13_her)[1] <- "Jahreszeit"
+
+
+
+dp13_win <- dp13 %>% select(., c("te_jahreszeit_winter"))
+dp13_win$te_jahreszeit_winter[dp13_win$te_jahreszeit_winter == "4_1"] <- "sehr attraktiv"
+dp13_win$te_jahreszeit_winter[dp13_win$te_jahreszeit_winter == "4_2"] <-"-"
+dp13_win$te_jahreszeit_winter[dp13_win$te_jahreszeit_winter == "4_3"] <-"--"
+dp13_win$te_jahreszeit_winter[dp13_win$te_jahreszeit_winter == "4_4"] <-"---"
+dp13_win$te_jahreszeit_winter[dp13_win$te_jahreszeit_winter == "4_5"] <-"----"
+dp13_win$te_jahreszeit_winter[dp13_win$te_jahreszeit_winter == "4_6"] <- "sehr unattraktiv"
+dp13_win <- dp13_win %>% na.omit() %>% group_by(te_jahreszeit_winter) %>%
+  summarise(occurences = n()) %>% mutate(percentage = round((occurences/167)*100,2),
+                                         type = "Winter")
+dp13_win$te_jahreszeit_winter <- factor(dp13_win$te_jahreszeit_winter, levels = c("sehr attraktiv", "-","--","---","----","sehr unattraktiv"))
+names(dp13_win)[1] <- "Jahreszeit"
+
+
+dp13_all <- rbind(dp13_frue,dp13_som,dp13_her,dp13_win)
+
+## pie plot
+p13_plot <- ggplot(data = dp13_all, aes(x = "", y = percentage, fill = Jahreszeit)) + 
+    geom_bar(stat = "identity", position = position_fill()) +
+    #geom_text(aes(label = percentage), position = position_fill(vjust = 0.5), size = 3) +
+    coord_polar(theta = "y") + ggtitle("Wie attraktiv finden Sie die Jahreszeiten für einen Urlaub\nin der Bodenseeregion?") +  ylab("% Prozent") + facet_wrap(~ type) + scale_fill_manual(values = c("#4d4dff", "#ccccff", "#e6f2ff","#ffccee","#ff8080","#ff0000")) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),
+          axis.title.x = element_text(size = 10,face = "bold"),
+          axis.title.y = element_blank(),
+          legend.title = element_blank(), legend.position='bottom',
+          axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid  = element_blank())
+
+#ggsave("to_deliver/insteadoflinear2.pdf")
 ```
 
 
