@@ -306,14 +306,14 @@ antworten_meer <- antworten_meer %>% group_by(Antwort,Ort) %>% summarise(occuren
 # Romanshorn
 dp11_roman <- dp11 %>% filter(., befragungsort_list == "Romanshorn")
 antworten_roman <- unlist(strsplit(dp11_roman$te_anrainer, ",")) %>% as.data.frame() %>%
-  mutate(Ort = "Meersburg")
+  mutate(Ort = "Romanshorn")
 names(antworten_roman)[1] <- "Antwort"
 antworten_roman <- antworten_roman %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
 
 # St. Gallen
 dp11_stga <- dp11 %>% filter(., befragungsort_list == "St. Gallen")
 antworten_stgal <- unlist(strsplit(dp11_stga$te_anrainer, ",")) %>% as.data.frame() %>%
-  mutate(Ort = "Meersburg")
+  mutate(Ort = "St. Gallen")
 names(antworten_stgal)[1] <- "Antwort"
 antworten_stgal <- antworten_stgal %>% group_by(Antwort,Ort) %>% summarise(occurences = n())
 
@@ -328,12 +328,14 @@ dp11_together$Antwort[dp11_together$Antwort == "ja_de"] <- "Ja, im deutschen Tei
 dp11_together$Antwort[dp11_together$Antwort == "Nein, kann ich mir nicht vorstellen"] <- "Nein"
 dp11_together$Antwort[dp11_together$Antwort == "vielleicht"] <- "Vielleicht"
 
+# pdf(file = "to_deliver/chord_ferien_v2.pdf", width = 7, height = 7)
+# chordDiagram(dp11_together)
+# dev.off()
 
-chordDiagram(dp11_together)
 ```
 
 ### Gründe keine Ferien zu machen
-```{r}
+```{r eval=FALSE}
 install.packages("wordcloud")
 library(wordcloud)
 install.packages("RColorBrewer")
@@ -345,7 +347,7 @@ library(tm)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-dp12 <- data_all %>% select(.,c("te_gruende_tourist","te_tourist_einheimisch","befragungsort_list")) %>%
+dp12 <- data_all %>% select(.,c("te_gruende_tourist","te_tourist_einheimisch","befragungsort_list","te_anrainer_de","te_anrainer_ch","te_anrainer_au")) %>%
   filter(., te_tourist_einheimisch == "tourist")
 
 dp12_de <- dp12 %>% select(., c("te_anrainer_de")) %>% na.omit()
@@ -435,5 +437,115 @@ p13_plot <- ggplot(data = dp13_all, aes(x = "", y = percentage, fill = Jahreszei
 
 #ggsave("to_deliver/insteadoflinear2.pdf")
 ```
+
+
+```{r, warning=FALSE, message=FALSE}
+library(circlize)
+dp14 <- data_all %>% select(.,c("sdf_wohnort","te_tourist_einheimisch",
+          "te_zeit_einkaufen_au","te_zeit_ausfluege_au","te_zeit_kontakte_au","te_zeit_gaststaetten_au",
+          "te_zeit_kultur_au","te_zeit_spazieren_au","te_zeit_arbeiten_au",
+          "te_zeit_einkaufen_de","te_zeit_ausfluege_de","te_zeit_kontakte_de","te_zeit_gaststaetten_de",
+          "te_zeit_kultur_de","te_zeit_spazieren_de","te_zeit_arbeiten_de",
+          "te_zeit_einkaufen_ch","te_zeit_ausfluege_ch","te_zeit_kontakte_ch","te_zeit_gaststaetten_ch",
+          "te_zeit_kultur_ch","te_zeit_spazieren_ch","te_zeit_arbeiten_ch",
+          "te_zeit_einkaufen_li","te_zeit_ausfluege_li","te_zeit_kontakte_li","te_zeit_gaststaetten_li",
+          "te_zeit_kultur_li","te_zeit_spazieren_li","te_zeit_arbeiten_li")) %>%
+  filter(.,te_tourist_einheimisch == "einheimisch")
+
+t <- dp14 %>% filter(., sdf_wohnort == "li")
+
+# replace values accross the dataframe
+dp14[dp14 == "te_zeit_1"] <- "nie"
+dp14[dp14 == "te_zeit_2"] <- "1-2x pro Jahr"
+dp14[dp14 == "te_zeit_3"] <- "3-4x pro Jahr"
+dp14[dp14 == "te_zeit_4"] <- "5-12x pro Jahr"
+dp14[dp14 == "ch"] <- "Schweiz"
+dp14[dp14 == "au"] <- "Österreich"
+dp14[dp14 == "de"] <- "Deutschland"
+
+
+
+## Austria
+dp14_au <- dp14 %>% select(.,c("sdf_wohnort","te_zeit_einkaufen_au","te_zeit_ausfluege_au","te_zeit_kontakte_au","te_zeit_gaststaetten_au","te_zeit_kultur_au","te_zeit_spazieren_au","te_zeit_arbeiten_au")) %>% 
+  filter(sdf_wohnort != "au")
+
+names(dp14_au) <- c("sdf_wohnort","Einkaufen","Ausflüge","Freunden und Familie","Besuch von Gaststätten","Kulturangeboten","Spazierengehen","Arbeiten")
+
+dp14_au <- pivot_longer(dp14_au, c("Einkaufen","Ausflüge","Freunden und Familie","Besuch von Gaststätten","Kulturangeboten","Spazierengehen","Arbeiten")) %>% na.omit() %>% group_by(sdf_wohnort,name,value) %>%
+  summarise(occurences = n())
+
+grid.col = c(Schweiz = "#de2d26", Österreich = "#cccccc",Deutschland = "#252525")
+
+# pdf(file = "to_deliver/dp14_au.pdf", width = 7, height = 7)
+chordDiagram(dp14_au,grid.col = grid.col,symmetric = F)
+# dev.off()
+
+## Deutschland
+dp14_de <- dp14 %>% select(.,c("sdf_wohnort","te_zeit_einkaufen_de","te_zeit_ausfluege_de","te_zeit_kontakte_de","te_zeit_gaststaetten_de","te_zeit_kultur_de","te_zeit_spazieren_de","te_zeit_arbeiten_de")) %>% 
+  filter(sdf_wohnort != "de")
+
+names(dp14_de) <- c("sdf_wohnort","Einkaufen","Ausflüge","Freunden und Familie","Besuch von Gaststätten","Kulturangeboten","Spazierengehen","Arbeiten")
+
+dp14_de <- pivot_longer(dp14_de, c("Einkaufen","Ausflüge","Freunden und Familie","Besuch von Gaststätten","Kulturangeboten","Spazierengehen","Arbeiten")) %>% na.omit() %>% group_by(sdf_wohnort,name,value) %>%
+  summarise(occurences = n())
+
+# pdf(file = "to_deliver/dp14_de.pdf", width = 7, height = 7)
+# chordDiagram(dp14_de, grid.col = grid.col)
+# dev.off()
+
+## Schweiz
+dp14_ch <- dp14 %>% select(.,c("sdf_wohnort","te_zeit_einkaufen_ch","te_zeit_ausfluege_ch","te_zeit_kontakte_ch","te_zeit_gaststaetten_ch","te_zeit_kultur_ch","te_zeit_spazieren_ch","te_zeit_arbeiten_ch")) %>% 
+  filter(sdf_wohnort != "ch")
+
+names(dp14_ch) <- c("sdf_wohnort","Einkaufen","Ausflüge","Freunden und Familie","Besuch von Gaststätten","Kulturangeboten","Spazierengehen","Arbeiten")
+
+dp14_ch <- pivot_longer(dp14_ch, c("Einkaufen","Ausflüge","Freunden und Familie","Besuch von Gaststätten","Kulturangeboten","Spazierengehen","Arbeiten")) %>% na.omit() %>% group_by(sdf_wohnort,name,value) %>%
+  summarise(occurences = n())
+
+# 
+# pdf(file = "to_deliver/dp14_ch.pdf", width = 7, height = 7)
+chordDiagram(dp14_ch, grid.col = grid.col,directional = 1)
+# dev.off()
+
+css5 <- scale_fill_manual(values = c("#bababa", "#f4a582","#ca0020","#404040"),
+                   labels = c("1-2x pro Jahr", "3-4x pro Jahr", "5-12x pro Jahr","nie"))
+
+## CH PLUS
+dp14_ch_PLUS <- ggplot(data = dp14_ch, aes(x = sdf_wohnort, y = occurences, fill = value)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Wie häufig (n)") +
+  geom_text(aes(label = occurences),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + facet_wrap(~ name) + 
+  ggtitle("Aus welchen Gründen und wie häufig waren Sie im schweizerischen Teil?") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css5
+
+ggsave("to_deliver/dp14_ch_PLUS.pdf")
+
+## AU PLUS
+dp14_au_PLUS <- ggplot(data = dp14_au, aes(x = sdf_wohnort, y = occurences, fill = value)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Wie häufig (n)") +
+  geom_text(aes(label = occurences),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + facet_wrap(~ name) + 
+  ggtitle("Aus welchen Gründen und wie häufig waren Sie im österreichischen Teil?") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css5
+
+ggsave("to_deliver/dp14_au_PLUS.pdf")
+
+## DE PLUS
+dp14_de_PLUS <- ggplot(data = dp14_de, aes(x = sdf_wohnort, y = occurences, fill = value)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Wie häufig (n)") +
+  geom_text(aes(label = occurences),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) + facet_wrap(~ name) + 
+  ggtitle("Aus welchen Gründen und wie häufig waren Sie im deutschen Teil?") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css5
+
+ggsave("to_deliver/dp14_de_PLUS.pdf")
+```
+
 
 
