@@ -476,9 +476,18 @@ dp14_au <- pivot_longer(dp14_au, c("Einkaufen","Ausflüge","Freunden und Familie
 
 grid.col = c(Schweiz = "#de2d26", Österreich = "#cccccc",Deutschland = "#252525")
 
-# pdf(file = "to_deliver/dp14_au.pdf", width = 7, height = 7)
-chordDiagram(dp14_au,grid.col = grid.col,symmetric = F)
+## Ohne Nie Werte
+dp14_au_ohne<-subset(dp14_au, value!="nie")
+
+# pdf(file = "to_deliver/dp14_au_ohne.pdf", width = 7, height = 7)
+# chordDiagram(dp14_au_ohne,grid.col = grid.col)
 # dev.off()
+
+## Nun Nie Werte
+dp14_au_nie<-subset(dp14_au, value == "nie")
+pdf(file = "to_deliver/dp14_au_nie.pdf", width = 7, height = 7)
+chordDiagram(dp14_au_nie,grid.col = grid.col)
+dev.off()
 
 ## Deutschland
 dp14_de <- dp14 %>% select(.,c("sdf_wohnort","te_zeit_einkaufen_de","te_zeit_ausfluege_de","te_zeit_kontakte_de","te_zeit_gaststaetten_de","te_zeit_kultur_de","te_zeit_spazieren_de","te_zeit_arbeiten_de")) %>% 
@@ -493,6 +502,19 @@ dp14_de <- pivot_longer(dp14_de, c("Einkaufen","Ausflüge","Freunden und Familie
 # chordDiagram(dp14_de, grid.col = grid.col)
 # dev.off()
 
+# Ohne Nie Werte
+dp14_de_ohne<-subset(dp14_de, value!="nie")
+
+# pdf(file = "to_deliver/dp14_de_ohne.pdf", width = 7, height = 7)
+# chordDiagram(dp14_de_ohne,grid.col = grid.col)
+# dev.off()
+
+## Nun Nie Werte
+dp14_de_nie<-subset(dp14_de, value == "nie")
+# pdf(file = "to_deliver/dp14_de_nie.pdf", width = 7, height = 7)
+# chordDiagram(dp14_de_nie,grid.col = grid.col)
+# dev.off()
+
 ## Schweiz
 dp14_ch <- dp14 %>% select(.,c("sdf_wohnort","te_zeit_einkaufen_ch","te_zeit_ausfluege_ch","te_zeit_kontakte_ch","te_zeit_gaststaetten_ch","te_zeit_kultur_ch","te_zeit_spazieren_ch","te_zeit_arbeiten_ch")) %>% 
   filter(sdf_wohnort != "ch")
@@ -501,6 +523,19 @@ names(dp14_ch) <- c("sdf_wohnort","Einkaufen","Ausflüge","Freunden und Familie"
 
 dp14_ch <- pivot_longer(dp14_ch, c("Einkaufen","Ausflüge","Freunden und Familie","Besuch von Gaststätten","Kulturangeboten","Spazierengehen","Arbeiten")) %>% na.omit() %>% group_by(sdf_wohnort,name,value) %>%
   summarise(occurences = n())
+
+# Ohne Nie Werte
+dp14_ch_ohne<-subset(dp14_ch, value!="nie")
+
+pdf(file = "to_deliver/dp14_ch_ohne.pdf", width = 7, height = 7)
+chordDiagram(dp14_ch_ohne,grid.col = grid.col)
+dev.off()
+
+## Nun Nie Werte
+dp14_ch_nie<-subset(dp14_ch, value == "nie")
+pdf(file = "to_deliver/dp14_ch_nie.pdf", width = 7, height = 7)
+chordDiagram(dp14_ch_nie,grid.col = grid.col)
+dev.off()
 
 # 
 # pdf(file = "to_deliver/dp14_ch.pdf", width = 7, height = 7)
@@ -532,7 +567,7 @@ dp14_au_PLUS <- ggplot(data = dp14_au, aes(x = sdf_wohnort, y = occurences, fill
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css5
 
-ggsave("to_deliver/dp14_au_PLUS.pdf")
+#ggsave("to_deliver/dp14_au_PLUS.pdf")
 
 ## DE PLUS
 dp14_de_PLUS <- ggplot(data = dp14_de, aes(x = sdf_wohnort, y = occurences, fill = value)) +
@@ -544,7 +579,7 @@ dp14_de_PLUS <- ggplot(data = dp14_de, aes(x = sdf_wohnort, y = occurences, fill
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css5
 
-ggsave("to_deliver/dp14_de_PLUS.pdf")
+#ggsave("to_deliver/dp14_de_PLUS.pdf")
 ```
 
 

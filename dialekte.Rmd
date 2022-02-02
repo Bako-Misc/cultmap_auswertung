@@ -1,0 +1,130 @@
+
+```{r message=FALSE, warning=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(reshape)
+library(tidyr)
+
+data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
+```
+
+
+## Welche Dialekte sprechen Sie
+```{r message=FALSE, warning=FALSE}
+# N = 255
+dt_s <- data_all %>% select(c("te_tourist_einheimisch","te_dialekte_1")) %>% na.omit()
+
+dt_s <- dt_s %>% group_by(te_tourist_einheimisch,te_dialekte_1) %>% summarise(occurences = n())
+
+dt_s <- dt_s %>% mutate(
+  percent = round((occurences/sum(occurences))*100,2)
+)
+
+# reordering the levels
+dt_s$te_dialekte_1 <- factor(dt_s$te_dialekte_1, levels = c("bodensee_alemannisch","schwaebisch",
+                                                          "liechtensteiner",
+                                                          "hochalemannisch", "vorarlberg","keinen"))
+
+
+s_plot <- ggplot(data = dt_s, aes(x = te_dialekte_1, y = percent, fill = "#bcbddc")) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab("Dialekte") + ylab("Prozent %") +
+  geom_text(aes(label = percent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Welche Dialekte sprechen Sie?") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="none",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
+
+s_plot
+#ggsave("to_deliver/welcheDialekte_sp.pdf")
+
+```
+
+
+```{r message=FALSE, warning=FALSE}
+# Dialekte verstehen
+
+d_vers <- data_all %>% select("te_dialekte_verstehen_1...103","te_dialekte_verstehen_2",
+                              "te_dialekte_verstehen_3", "te_dialekte_verstehen_4",
+                              "te_dialekte_verstehen_5")
+
+# 1
+dial_1 <- data_all %>% select("te_dialekte_verstehen_1...103") %>% mutate(
+  Dialekt = "Bodensee-Alemannisch" 
+ ) %>% na.omit()
+names(dial_1)[1] =  "Antwort"
+
+# 2
+dial_2 <- data_all %>% select("te_dialekte_verstehen_2") %>% mutate(
+  Dialekt = "Hochalemannisch (Ostschweizer Dialekt)" 
+ ) %>% na.omit()
+names(dial_2)[1] =  "Antwort"
+
+# 3
+dial_3 <- data_all %>% select("te_dialekte_verstehen_3") %>% mutate(
+  Dialekt = "Schwäbisch" 
+ ) %>% na.omit()
+names(dial_3)[1] =  "Antwort"
+
+# 4
+dial_4 <- data_all %>% select("te_dialekte_verstehen_4") %>% mutate(
+  Dialekt = "Vorarlberger Dialekt" 
+ ) %>% na.omit()
+names(dial_4)[1] =  "Antwort"
+
+# 5
+dial_5 <- data_all %>% select("te_dialekte_verstehen_5") %>% mutate(
+  Dialekt = "Lichtensteinischer Dialekt" 
+ ) %>% na.omit()
+names(dial_5)[1] =  "Antwort"
+
+
+dial_1 <- dial_1 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_1 <- dial_1 %>% mutate(
+  Prozent = round((occurences/sum(dial_1$occurences))*100,2) 
+  )
+
+dial_2 <- dial_2 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_2 <- dial_2 %>% mutate(
+  Prozent = round((occurences/sum(dial_2$occurences))*100,2) 
+  )
+
+dial_3 <- dial_3 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_3 <- dial_3 %>% mutate(
+  Prozent = round((occurences/sum(dial_3$occurences))*100,2) 
+  )
+
+dial_4 <- dial_4 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_4 <- dial_4 %>% mutate(
+  Prozent = round((occurences/sum(dial_4$occurences))*100,2) 
+  )
+
+dial_5 <- dial_5 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_5 <- dial_5 %>% mutate(
+  Prozent = round((occurences/sum(dial_5$occurences))*100,2) 
+  )
+
+# bring all together
+diale_all <- rbind(dial_1, dial_2, dial_3, dial_4, dial_5)
+
+ggplot(data = diale_all, aes(Antwort,Prozent, fill = Dialekt)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = Prozent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Verstehen Sie einen dieser Dialekte?") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
+   scale_fill_manual(values = c("#ca0020", "#f4a582", "#b2abd2","#bababa","#404040"))
+
+
+
+
+ggsave("to_deliver/welcheDialekte_vers.pdf")
+
+
+```
+
+

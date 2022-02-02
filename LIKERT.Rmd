@@ -1,0 +1,82 @@
+```{r import data, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(reshape)
+library(tidyr)
+library(HH)
+
+data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
+
+beschr1 <- data_all %>% dplyr::select(c("te_tourist_einheimisch","hf_beschreibung_10")) 
+
+beschr1 <- beschr1 %>% group_by(te_tourist_einheimisch,hf_beschreibung_10) %>% 
+  summarise(occurences = n())
+
+## tourist
+beschr1_tourist <- beschr1 %>% na.omit()
+
+beschr1_tourist <- beschr1_tourist %>% mutate(percent = (occurences / sum(beschr1_tourist$occurences))*100)
+
+beschr1_tourist$hf_beschreibung_10[beschr1_tourist$hf_beschreibung_10 == "1_1"] <- "Modern"
+beschr1_tourist$hf_beschreibung_10[beschr1_tourist$hf_beschreibung_10 == "1_6"] <- "Traditionell"
+
+beschr1_tourist <- beschr1_tourist %>% group_by(te_tourist_einheimisch) %>% dplyr::select(-c("occurences"))
+beschr1_tourist_wide <- beschr1_tourist %>% pivot_wider(
+  names_from = hf_beschreibung_10, values_from = percent)
+
+pdf(file = 'to_deliver/l1.pdf')
+likert(beschr1_tourist_wide,as.percent = F)
+dev.off()
+```
+
+## 2
+```{r}
+beschr2 <- data_all %>% dplyr::select(c("te_tourist_einheimisch","hf_beschreibung_10")) 
+
+beschr2 <- beschr2 %>% group_by(te_tourist_einheimisch,hf_beschreibung_10) %>% 
+  summarise(occurences = n())
+
+## tourist2
+beschr2_tourist <- beschr2 %>% na.omit()
+
+beschr2_tourist <- beschr2_tourist %>% mutate(percent = (occurences / sum(beschr2_tourist$occurences))*100)
+
+beschr2_tourist$hf_beschreibung_10[beschr2_tourist$hf_beschreibung_10 == "2_1"] <- "Innovativ"
+beschr2_tourist$hf_beschreibung_10[beschr2_tourist$hf_beschreibung_10 == "2_6"] <- "nicht Innovativ"
+
+beschr2_tourist <- beschr2_tourist %>% group_by(te_tourist_einheimisch) %>% dplyr::select(-c("occurences"))
+beschr2_tourist_wide <- beschr2_tourist %>% pivot_wider(
+  names_from = hf_beschreibung_10, values_from = percent)
+
+pdf(file = 'to_deliver/ll2.pdf')
+likert(beschr2_tourist_wide,as.percent = F)
+dev.off()
+```
+
+```{r}
+
+output <- data_all %>% dplyr::select(c("te_tourist_einheimisch","hf_beschreibung_10"))
+output <- output %>% group_by(te_tourist_einheimisch,hf_beschreibung_10) %>% 
+ summarise(occurences = n())
+
+ ## tourist2
+output_tourist <- output %>% filter(.,te_tourist_einheimisch == "einheimisch") %>% na.omit()
+
+output_tourist <- output_tourist %>% mutate(percent = (occurences / sum(output_tourist$occurences))*100)
+
+output_tourist$hf_beschreibung_10[output_tourist$hf_beschreibung_10 == "10_1"] <- "Kostengünstig/Preiswert"
+output_tourist$hf_beschreibung_10[output_tourist$hf_beschreibung_10 == "10_6"] <- "Teuer"
+
+output_tourist <- output_tourist %>% group_by(te_tourist_einheimisch) %>% dplyr::select(-c("occurences"))
+output_tourist_wide5 <- output_tourist %>% pivot_wider(
+  names_from = hf_beschreibung_10, values_from = percent)
+
+pdf(file = 'to_deliver/ein10.pdf')
+likert(output_tourist_wide5,as.percent = F,xlim=c(-100,100))
+dev.off()
+
+```
+
+

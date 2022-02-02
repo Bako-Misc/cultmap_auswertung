@@ -19,11 +19,40 @@ library(tidyr)
 
 data_all <- read_xlsx("../data/DatenbefragungAll_xlsx.xlsx")
 
-general <- data_all %>% select(., c("hf_tourist_einheimisch","hf_einheit","hf_einheit_ja",
+general <- data_all %>% dplyr::select(., c("hf_tourist_einheimisch","hf_einheit","hf_einheit_ja",
                                     "hf_einheit_nein","hf_grenzverkehr","sdf_geschlecht","sdf_jahrgang", "te_tourist_einheimisch","te_wegzug","te_ausland","sdf_wohnort"))
 
-data_01 <- data_all %>% select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang","hf_tourist_einheimisch",
+data_01 <- data_all %>% dplyr::select(., c("hf_einheit","sdf_geschlecht","sdf_jahrgang","hf_tourist_einheimisch",
                                     "sdf_wohnort", "te_wegzug", "te_tourist_einheimisch"))
+
+
+
+beschr <- data_all %>% select(c("te_tourist_einheimisch","hf_beschreibung_1","hf_beschreibung_2","hf_beschreibung_3"
+                                ,"hf_beschreibung_4","hf_beschreibung_5","hf_beschreibung_6","hf_beschreibung_7",
+                                "hf_beschreibung_8","hf_beschreibung_9","hf_beschreibung_10"))
+
+beschr1 <- data_all %>% dplyr::select(c("te_tourist_einheimisch","hf_beschreibung_1")) 
+
+library(HH)
+beschr1 <- beschr1 %>% group_by(te_tourist_einheimisch,hf_beschreibung_1) %>% 
+  summarise(occurences = n())
+
+# tourist
+beschr1_tourist <- beschr1 %>% filter(.,te_tourist_einheimisch == "tourist") %>% 
+  mutate(percent = (occurences / sum(beschr1_tourist$occurences))*100)
+
+beschr1_tourist$hf_beschreibung_1[beschr1_tourist$hf_beschreibung_1 == "1_1"] <- "Modern"
+beschr1_tourist$hf_beschreibung_1[beschr1_tourist$hf_beschreibung_1 == "1_6"] <- "Traditionell"
+
+
+beschr1_tourist <- beschr1_tourist %>% group_by(te_tourist_einheimisch) %>% dplyr::select(-c("occurences"))
+  
+beschr1_tourist_wide <- beschr1_tourist %>% pivot_wider(
+  names_from = hf_beschreibung_1, values_from = percent)
+
+likert(beschr1_tourist_wide)
+
+
 ```
 
 **Wahrnehmung der Bodenseeregion als eine Einheit nach Altersgruppe**
@@ -126,16 +155,23 @@ dp2 <- filter(data_02, te_tourist_einheimisch == "einheimisch")
 # grouping the data
 dp2 <- dp2 %>% group_by(sdf_wohnort,hf_einheit) %>% summarise(occurences = n())
 dp2 <- dp2 %>% mutate(
-  percent = round((occurences/232)*100,2)
+  percent = round((occurences/295)*100,2)
 )
 
 # Plot ohne NAs -- only for the visualisation
 dp2_ohne <- na.omit(dp2) %>%
   filter(.,sdf_wohnort != "sonstiges")
 
+dp2_ohne <- dp2_ohne %>% group_by(sdf_wohnort,hf_einheit) %>% summarise(occurences = n())
+dp2_ohne <- dp2_ohne %>% mutate(
+  percent = round((occurences/277)*100,2)
+)
+
 #restructuring a little bit
 dp2$hf_einheit[dp2$hf_einheit == "ja"] <- "Einheit"
 dp2$hf_einheit[dp2$hf_einheit == "nein"] <- "Keine Einheit"
+dp2_ohne$hf_einheit[dp2_ohne$hf_einheit == "ja"] <- "Einheit"
+dp2_ohne$hf_einheit[dp2_ohne$hf_einheit == "nein"] <- "Keine Einheit"
 dp2$hf_einheit[is.na(dp2$hf_einheit)] <- "NA"
 
 ##
@@ -159,19 +195,21 @@ p2 <- ggplot(data = dp2, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css3
 
+p2
+
 #ggsave("einheit_wohnort.pdf")
 
 p2_ohne <- ggplot(data = dp2_ohne, aes(x = hf_einheit, y = percent, fill = sdf_wohnort)) +
   geom_col(position = "dodge", alpha = 0.8) + xlab("Wohnort ") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Wahrnehmung der Bodenseeregion als Einheit (Einheimische)") + ylim(0,100) + 
+  ggtitle("Empfinden Sie die Bodenseeregion – trotz der Zugehörigkeit zu vier Staaten – \nals eine Einheit? (*nur Einwohner und Einwohnerinnen)") + ylim(0,100) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + css4
 
 p2_ohne
-#ggsave("to_deliver/einheit_wohnort_gesamt.pdf")
+ggsave("to_deliver/einheit_wohnort_gesamt22.pdf")
 
 ```
 
@@ -485,19 +523,21 @@ dp6 <- dp6 %>% na.omit(.) %>%
 dp6$hf_einheit[dp6$hf_einheit == "ja"] <- "Einheit"
 dp6$hf_einheit[dp6$hf_einheit == "nein"] <- "keine Einheit"
 
+dp6$te_tourist_einheimisch[dp6$te_tourist_einheimisch == "einheimisch"] <- "Einwohner"
+dp6$te_tourist_einheimisch[dp6$te_tourist_einheimisch == "tourist"] <- "Tourist"
 
 p6 <- ggplot(data = dp6, aes(x = hf_einheit, y = percent, fill = te_tourist_einheimisch)) +
   geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
   geom_text(aes(label = percent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
-  ggtitle("Sind Sie als Tourist/in oder Einwohner/in in der Bodenseeregion unterwegs?") + ylim(0,100) +
+  ggtitle("Empfinden Sie die Bodenseeregion – trotz der Zugehörigkeit zu vier Staaten – \nals eine Einheit?") + ylim(0,100) +
   scale_fill_manual(values = c("dodgerblue1", "salmon2")) + 
   theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
         axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold"))
 
 p6
-ggsave("to_deliver/einheit_touristvseinheimisch.pdf")
+ggsave("to_deliver/einheit_touristvseinheimisch_22.pdf")
 ```
 
 
