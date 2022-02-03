@@ -48,60 +48,69 @@ s_plot
 
 d_vers <- data_all %>% select("te_dialekte_verstehen_1...103","te_dialekte_verstehen_2",
                               "te_dialekte_verstehen_3", "te_dialekte_verstehen_4",
-                              "te_dialekte_verstehen_5")
+                              "te_dialekte_verstehen_5","sdf_wohnort")
+
+d_vers <- d_vers %>% filter(sdf_wohnort != "sonstiges")
+
+d_vers$sdf_wohnort[d_vers$sdf_wohnort == "au"] <- "Österreich"
+d_vers$sdf_wohnort[d_vers$sdf_wohnort == "de"] <- "Deutschland"
+d_vers$sdf_wohnort[d_vers$sdf_wohnort == "ch"] <- "Schweiz"
+
 
 # 1
-dial_1 <- data_all %>% select("te_dialekte_verstehen_1...103") %>% mutate(
+dial_1 <- d_vers %>% select("te_dialekte_verstehen_1...103","sdf_wohnort") %>% mutate(
   Dialekt = "Bodensee-Alemannisch" 
  ) %>% na.omit()
 names(dial_1)[1] =  "Antwort"
+dial_1 <- dial_1 %>% filter(sdf_wohnort != "sonstiges")
+
 
 # 2
-dial_2 <- data_all %>% select("te_dialekte_verstehen_2") %>% mutate(
+dial_2 <- d_vers %>% select("te_dialekte_verstehen_2","sdf_wohnort") %>% mutate(
   Dialekt = "Hochalemannisch (Ostschweizer Dialekt)" 
  ) %>% na.omit()
 names(dial_2)[1] =  "Antwort"
 
 # 3
-dial_3 <- data_all %>% select("te_dialekte_verstehen_3") %>% mutate(
+dial_3 <- d_vers %>% select("te_dialekte_verstehen_3","sdf_wohnort") %>% mutate(
   Dialekt = "Schwäbisch" 
  ) %>% na.omit()
 names(dial_3)[1] =  "Antwort"
 
 # 4
-dial_4 <- data_all %>% select("te_dialekte_verstehen_4") %>% mutate(
+dial_4 <- d_vers %>% select("te_dialekte_verstehen_4","sdf_wohnort") %>% mutate(
   Dialekt = "Vorarlberger Dialekt" 
  ) %>% na.omit()
 names(dial_4)[1] =  "Antwort"
 
 # 5
-dial_5 <- data_all %>% select("te_dialekte_verstehen_5") %>% mutate(
+dial_5 <- d_vers %>% select("te_dialekte_verstehen_5","sdf_wohnort") %>% mutate(
   Dialekt = "Lichtensteinischer Dialekt" 
  ) %>% na.omit()
 names(dial_5)[1] =  "Antwort"
 
-
-dial_1 <- dial_1 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+## Grouping 
+dial_1 <- dial_1 %>% group_by(Antwort, Dialekt, sdf_wohnort) %>% summarise(occurences = n())
 dial_1 <- dial_1 %>% mutate(
   Prozent = round((occurences/sum(dial_1$occurences))*100,2) 
   )
 
-dial_2 <- dial_2 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_2 <- dial_2 %>% group_by(Antwort, Dialekt, sdf_wohnort) %>% summarise(occurences = n())
 dial_2 <- dial_2 %>% mutate(
   Prozent = round((occurences/sum(dial_2$occurences))*100,2) 
   )
 
-dial_3 <- dial_3 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_3 <- dial_3 %>% group_by(Antwort, Dialekt, sdf_wohnort) %>% summarise(occurences = n())
 dial_3 <- dial_3 %>% mutate(
   Prozent = round((occurences/sum(dial_3$occurences))*100,2) 
   )
 
-dial_4 <- dial_4 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_4 <- dial_4 %>% group_by(Antwort, Dialekt, sdf_wohnort) %>% summarise(occurences = n())
 dial_4 <- dial_4 %>% mutate(
   Prozent = round((occurences/sum(dial_4$occurences))*100,2) 
   )
 
-dial_5 <- dial_5 %>% group_by(Antwort, Dialekt) %>% summarise(occurences = n())
+dial_5 <- dial_5 %>% group_by(Antwort, Dialekt, sdf_wohnort) %>% summarise(occurences = n())
 dial_5 <- dial_5 %>% mutate(
   Prozent = round((occurences/sum(dial_5$occurences))*100,2) 
   )
@@ -119,12 +128,168 @@ ggplot(data = diale_all, aes(Antwort,Prozent, fill = Dialekt)) +
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
    scale_fill_manual(values = c("#ca0020", "#f4a582", "#b2abd2","#bababa","#404040"))
 
-
-
-
-ggsave("to_deliver/welcheDialekte_vers.pdf")
-
-
+# ggsave("to_deliver/welcheDialekte_vers.pdf")
 ```
 
 
+## Bodensee Al - Dialekt
+```{r message=FALSE, warning=FALSE}
+# Deutschland
+d_de <- dial_1 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Deutschland") %>%
+  mutate(Prozent = round( (occurences/77)*100,2))
+
+# Österreich
+d_au <- dial_1 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Österreich") %>%
+  mutate(Prozent = round( (occurences/56)*100,2))
+
+# Schweiz
+d_ch <- dial_1 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Schweiz") %>%
+  mutate(Prozent = round( (occurences/52)*100,2))
+
+dial_1 <- rbind(d_de, d_au, d_ch)
+
+
+
+ggplot(data = dial_1, aes(Antwort,Prozent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = Prozent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Bodensee-Alemannisch") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
+   scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
+
+#ggsave("to_deliver/bodensee_alleman.pdf")
+
+## INFO FOR LARA
+# de = 77
+# au = 56
+# ch = 52
+```
+
+
+## Hochallemanisch
+```{r message=FALSE, warning=FALSE}
+# Deutschland
+d2_de <- dial_2 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Deutschland") %>%
+  mutate(Prozent = round( (occurences/78)*100,2))
+
+# Österreich
+d2_au <- dial_2 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Österreich") %>%
+  mutate(Prozent = round( (occurences/55)*100,2))
+
+# Schweiz
+d2_ch <- dial_2 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Schweiz") %>%
+  mutate(Prozent = round( (occurences/52)*100,2))
+
+dial_2 <- rbind(d2_de, d2_au, d2_ch)
+
+
+
+ggplot(data = dial_2, aes(Antwort,Prozent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = Prozent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Hochalemannisch (Ostschweizer Dialekt)") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
+   scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
+
+#ggsave("to_deliver/Hochalemannisch.pdf")
+```
+
+## Schwäbisch
+```{r message=FALSE, warning=FALSE}
+# Deutschland
+d3_de <- dial_3 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Deutschland") %>%
+  mutate(Prozent = round((occurences/79)*100,2))
+
+# Österreich
+d3_au <- dial_3 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Österreich") %>%
+  mutate(Prozent = round( (occurences/56)*100,2))
+
+# Schweiz
+d3_ch <- dial_3 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Schweiz") %>%
+  mutate(Prozent = round( (occurences/50)*100,2))
+
+dial_3 <- rbind(d3_de, d3_au, d3_ch)
+
+
+
+ggplot(data = dial_3, aes(Antwort,Prozent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = Prozent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Schwäbisch") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
+   scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
+
+# ggsave("to_deliver/Schwaebisch.pdf")
+```
+
+## Vorarlberger Dialekt
+```{r message=FALSE, warning=FALSE}
+# Deutschland
+d4_de <- dial_4 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Deutschland") %>%
+  mutate(Prozent = round((occurences/78)*100,2))
+
+# Österreich
+d4_au <- dial_4 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Österreich") %>%
+  mutate(Prozent = round( (occurences/58)*100,2))
+
+# Schweiz
+d4_ch <- dial_4 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Schweiz") %>%
+  mutate(Prozent = round( (occurences/52)*100,2))
+
+dial_4 <- rbind(d4_de, d4_au, d4_ch)
+
+
+
+ggplot(data = dial_4, aes(Antwort,Prozent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = Prozent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Vorarlberger Dialekt") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
+   scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
+
+# ggsave("to_deliver/Vorarlberger.pdf")
+```
+
+
+## Lichtensteinischer Dialekt
+```{r message=FALSE, warning=FALSE}
+# Deutschland
+d5_de <- dial_5 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Deutschland") %>%
+  mutate(Prozent = round((occurences/76)*100,2))
+
+# Österreich
+d5_au <- dial_5 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Österreich") %>%
+  mutate(Prozent = round( (occurences/54)*100,2))
+
+# Schweiz
+d5_ch <- dial_5 %>% select(-c("Prozent")) %>% filter(sdf_wohnort == "Schweiz") %>%
+  mutate(Prozent = round( (occurences/52)*100,2))
+
+dial_5 <- rbind(d5_de, d5_au, d5_ch)
+
+
+
+ggplot(data = dial_5, aes(Antwort,Prozent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = Prozent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Lichtensteinischer Dialekt") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
+   scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
+
+ggsave("to_deliver/Lichte.pdf")
+```
