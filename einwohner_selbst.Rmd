@@ -92,13 +92,13 @@ nat_eur_ch <- nat_eur %>% filter(sdf_wohnort == "Schweiz")
 nat_eur_ch <- nat_eur_ch %>% mutate(Prozent = round((occurences/sum(nat_eur_ch$occurences))*100,2))
 
 # bringing back alltogether
-nat_eur <- rbind(nat_eur_de, nat_eur_au, nat_eur_ch)
+nat_eur_all <- rbind(nat_eur_de, nat_eur_au, nat_eur_ch)
 ```
 
 ## Plot Einwohner Nationalstaat vs. Europa
 ```{r message=FALSE, warning=FALSE}
 
-ggplot(data = nat_eur, aes(te_einwohner_2, Prozent, fill = sdf_wohnort)) +
+ggplot(data = nat_eur_all, aes(te_einwohner_2, Prozent, fill = sdf_wohnort)) +
   geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
   geom_text(aes(label = Prozent),
             position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
@@ -108,7 +108,10 @@ ggplot(data = nat_eur, aes(te_einwohner_2, Prozent, fill = sdf_wohnort)) +
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
    scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
 
-ggsave("to_deliver/national_vs_europa.pdf")
+#ggsave("to_deliver/national_vs_europa.pdf")
 ```
+
+
+
 
 
