@@ -69,7 +69,7 @@ ggplot(data = wohn_boden, aes(te_einwohner,Prozent, fill = sdf_wohnort)) +
         axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
    scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
 
-ggsave("to_deliver/Wohnort_vs_Bodensee.pdf")
+#ggsave("to_deliver/Wohnort_vs_Bodensee.pdf")
 ```
 
 
@@ -78,6 +78,44 @@ ggsave("to_deliver/Wohnort_vs_Bodensee.pdf")
 ```{r message=FALSE, warning=FALSE}
 nat_eur <- data_ein %>% select(-c(te_einwohner)) %>% group_by(te_einwohner_2, sdf_wohnort) %>%
   summarise(occurences = n())
+
+nat_eur_2 <- nat_eur
+nat_eur_2$te_einwohner_2[nat_eur_2$te_einwohner_2 == "Als Deutsche/r" | nat_eur_2$te_einwohner_2 == "Als Liechtensteiner/in" | nat_eur_2$te_einwohner_2 == "Als Österreicher/in" | nat_eur_2$te_einwohner_2 == "Als Schweizer/in" ] <- "Nationalstaat"
+
+## for plot 2 -- DE
+te_einwohner_2 <- c("Nationalstaat", "Europa")
+sdf_wohnort <- c("Deutschland", "Deutschland")
+N <- c(73,16)
+
+df_DE <- data.frame(te_einwohner_2, sdf_wohnort, N) %>% mutate(
+  Prozent = round((N/sum(N))*100,2)
+)
+
+## for plot 2 -- au
+te_einwohner_au <- c("Nationalstaat", "Europa")
+sdf_wohnort_au <- c("Österreich", "Österreich")
+N_au <- c(40,19)
+
+df_au <- data.frame(te_einwohner_au, sdf_wohnort_au, N_au)
+names(df_au) <- c("te_einwohner_2","sdf_wohnort","N")
+
+df_au <- df_au %>% mutate(
+  Prozent = round((N/sum(N))*100,2))
+
+## for plot 2 -- CH
+te_einwohner_CH <- c("Nationalstaat", "Europa")
+sdf_wohnort_CH <- c("Schweiz", "Schweiz")
+N_CH <- c(105,11)
+
+df_ch <- data.frame(te_einwohner_CH, sdf_wohnort_CH, N_CH)
+names(df_ch) <- c("te_einwohner_2","sdf_wohnort","N")
+
+df_ch <- df_ch %>% mutate(
+  Prozent = round((N/sum(N))*100,2))
+
+## For plot 2 -- bring alltogether
+df_all <- rbind(df_DE, df_au, df_ch)
+
 
 # Deutschland
 nat_eur_de <- nat_eur %>% filter(sdf_wohnort == "Deutschland")
@@ -95,7 +133,7 @@ nat_eur_ch <- nat_eur_ch %>% mutate(Prozent = round((occurences/sum(nat_eur_ch$o
 nat_eur_all <- rbind(nat_eur_de, nat_eur_au, nat_eur_ch)
 ```
 
-## Plot Einwohner Nationalstaat vs. Europa
+## Plot Einwohner Nationalstaat vs. Europa with details
 ```{r message=FALSE, warning=FALSE}
 
 ggplot(data = nat_eur_all, aes(te_einwohner_2, Prozent, fill = sdf_wohnort)) +
@@ -111,6 +149,21 @@ ggplot(data = nat_eur_all, aes(te_einwohner_2, Prozent, fill = sdf_wohnort)) +
 #ggsave("to_deliver/national_vs_europa.pdf")
 ```
 
+## Plot Einwohner Nationalstaat vs. Europa GENERAL
+```{r message=FALSE, warning=FALSE}
+
+ggplot(data = df_all, aes(te_einwohner_2, Prozent, fill = sdf_wohnort)) +
+  geom_col(position = "dodge", alpha = 0.8) + xlab(" ") + ylab("Prozent %") +
+  geom_text(aes(label = Prozent),
+            position=position_dodge(width=0.9), size = 3,vjust=-0.5) +
+  ggtitle("Wie würden Sie sich selbst am ehesten bezeichnen? (Nationalstaat vs. Europa)") + ylim(0,100) + 
+  theme(plot.title = element_text(size = 11, face = "bold"),legend.title = element_blank(), legend.position="bottom",
+        axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10,face = "bold"),
+        axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10,face = "bold")) + 
+   scale_fill_manual(values = c("#252525", "#bdbdbd", "#de2d26"))
+
+ggsave("to_deliver/national_vs_europa_General.pdf")
+```
 
 
 

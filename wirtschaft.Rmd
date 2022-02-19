@@ -1,0 +1,87 @@
+
+```{r message=F, warning=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+library(tidylog)
+
+
+data_wirt <- read_xlsx("../data/wirtschaft.xlsx")
+data_W <- data_wirt[,c(12,21:30)] %>% na.omit()
+
+
+data_W$Image[data_W$Image == 1] <- "weiss nicht / keine Angabe"
+data_W$Image[data_W$Image == 2] <- "sehr gering"
+data_W$Image[data_W$Image == 3] <- "eher gering"
+data_W$Image[data_W$Image == 4]<- "eher hoch"
+data_W$Image[data_W$Image == 5] <- "sehr hoch"
+
+names(data_W)[3] <- "Präsenz"
+
+data_W$Präsenz[data_W$Präsenz == 1] <- "weiss nicht / keine Angabe"
+data_W$Präsenz[data_W$Präsenz == 2] <- "sehr gering"
+data_W$Präsenz[data_W$Präsenz == 3] <- "eher gering"
+data_W$Präsenz[data_W$Präsenz == 4] <- "eher hoch"
+data_W$Präsenz[data_W$Präsenz == 5] <- "sehr gering"
+
+data_W$Naturlandschaft[data_W$Naturlandschaft == 1] <- "weiss nicht / keine Angabe"
+data_W$Naturlandschaft[data_W$Naturlandschaft == 2] <- "sehr gering"
+data_W$Naturlandschaft[data_W$Naturlandschaft == 3] <- "eher gering"
+data_W$Naturlandschaft[data_W$Naturlandschaft == 4] <- "eher hoch"
+data_W$Naturlandschaft[data_W$Naturlandschaft == 5] <- "sehr hoch"
+
+
+data_W$Kulturangebot[data_W$Kulturangebot == 1] <- "weiss nicht / keine Angabe"
+data_W$Kulturangebot[data_W$Kulturangebot == 2] <- "sehr gering"
+data_W$Kulturangebot[data_W$Kulturangebot == 3] <- "eher gering"
+data_W$Kulturangebot[data_W$Kulturangebot == 4] <- "eher hoch"
+data_W$Kulturangebot[data_W$Kulturangebot == 5] <- "sehr hoch"
+
+data_W$Wohnmöglichkeiten[data_W$Wohnmöglichkeiten == 1] <- "weiss nicht / keine Angabe"
+data_W$Wohnmöglichkeiten[data_W$Wohnmöglichkeiten == 2] <- "sehr gering"
+data_W$Wohnmöglichkeiten[data_W$Wohnmöglichkeiten == 3] <- "eher gering"
+data_W$Wohnmöglichkeiten[data_W$Wohnmöglichkeiten == 4] <- "eher hoch"
+data_W$Wohnmöglichkeiten[data_W$Wohnmöglichkeiten == 5] <- "sehr hoch"
+
+data_W$Verkehrsanbindung[data_W$Verkehrsanbindung == 1] <- "weiss nicht / keine Angabe"
+data_W$Verkehrsanbindung[data_W$Verkehrsanbindung == 2] <- "sehr gering"
+data_W$Verkehrsanbindung[data_W$Verkehrsanbindung == 3] <- "eher gering"
+data_W$Verkehrsanbindung[data_W$Verkehrsanbindung == 4] <- "eher hoch"
+data_W$Verkehrsanbindung[data_W$Verkehrsanbindung == 5] <- "sehr hoch"
+
+data_W$Bildungsangebot[data_W$Bildungsangebot == 1] <- "weiss nicht / keine Angabe"
+data_W$Bildungsangebot[data_W$Bildungsangebot == 2] <- "sehr gering"
+data_W$Bildungsangebot[data_W$Bildungsangebot == 3] <- "eher gering"
+data_W$Bildungsangebot[data_W$Bildungsangebot == 4] <- "eher hoch"
+data_W$Bildungsangebot[data_W$Bildungsangebot == 5] <- "sehr hoch"
+
+
+data_W$`Verfügbarkeit von qualifizierten Arbeitskräften`[data_W$`Verfügbarkeit von qualifizierten Arbeitskräften` == 1] <- "weiss nicht / keine Angabe"
+data_W$`Verfügbarkeit von qualifizierten Arbeitskräften`[data_W$`Verfügbarkeit von qualifizierten Arbeitskräften` == 2] <- "sehr gering"
+data_W$`Verfügbarkeit von qualifizierten Arbeitskräften`[data_W$`Verfügbarkeit von qualifizierten Arbeitskräften` == 3] <- "eher gering"
+data_W$`Verfügbarkeit von qualifizierten Arbeitskräften`[data_W$`Verfügbarkeit von qualifizierten Arbeitskräften` == 4] <- "eher hoch"
+data_W$`Verfügbarkeit von qualifizierten Arbeitskräften`[data_W$`Verfügbarkeit von qualifizierten Arbeitskräften` == 5] <- "sehr hoch"
+
+data_W$`Verfügbarkeit von Gewerbeflächen`[data_W$`Verfügbarkeit von Gewerbeflächen` == 1] <- "weiss nicht / keine Angabe"
+data_W$`Verfügbarkeit von Gewerbeflächen`[data_W$`Verfügbarkeit von Gewerbeflächen` == 2] <- "sehr gering"
+data_W$`Verfügbarkeit von Gewerbeflächen`[data_W$`Verfügbarkeit von Gewerbeflächen` == 3] <- "eher gering"
+data_W$`Verfügbarkeit von Gewerbeflächen`[data_W$`Verfügbarkeit von Gewerbeflächen` == 4] <- "eher hoch"
+data_W$`Verfügbarkeit von Gewerbeflächen`[data_W$`Verfügbarkeit von Gewerbeflächen` == 5] <- "sehr hoch"
+
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 1] <- "weiss nicht / keine Angabe"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 2] <- "sehr gering"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 3] <- "eher gering"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 4] <- "eher hoch"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 5] <- "sehr hoch"
+
+
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 1] <- "weiss nicht / keine Angabe"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 2] <- "sehr gering"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 3] <- "eher gering"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 4] <- "eher hoch"
+data_W$`Steuerliche Rahmenbedingungen`[data_W$`Steuerliche Rahmenbedingungen` == 5] <- "sehr hoch"
+```
+
+
+
